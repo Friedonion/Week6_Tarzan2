@@ -103,9 +103,10 @@ PS_OUTPUT mainPS(PS_INPUT input)
 
     float3 normalWS = input.TBN[2].xyz;
 
-    
+    if (input.normalFlag > 0.5f) // 노말맵이 유효한 경우
+    {
         normalWS = GetNormalFromMap(input);
-   
+    }
 
     if (IsLit)
     {
