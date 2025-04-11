@@ -70,13 +70,21 @@ void FUpdateLightBufferPass::Render(const std::shared_ptr<FEditorViewportClient>
             break;
         }
 
-        if (Frustrum.ContainsPoint(Light->GetWorldLocation()))
+        FVector LightPos = Light->GetRelativeLocation();
+
+        // 광원의 유효 범위
+        float LightRange = Light->GetAttenuationRadius();
+
+        
+        std::cout << Frustrum.IntersectsSphere(LightPos, LightRange) << std::endl;
+
+        if (Frustrum.IntersectsSphere(LightPos, LightRange))
         {
             LightBufferData.gLights[LightCount] = Light->GetLightInfo();
             LightBufferData.gLights[LightCount].Position = Light->GetWorldLocation();
+            LightCount++;
         }
-
-        LightCount++;
+         
     }
 
     for (auto Light : SpotLights)

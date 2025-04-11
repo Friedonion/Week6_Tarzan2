@@ -43,9 +43,9 @@ float4 SpotLight(int nIndex, float3 vPosition, float3 vNormal)
     float fDistance = length(vToLight);
 
     // 감쇠 반경을 벗어나면 기여하지 않음
-    if (fDistance > gLights[nIndex].m_fAttRadius)
+    if (fDistance < gLights[nIndex].m_fAttRadius)
     {
-        return float4(0.0f, 0.0f, 0.0f, 0.0f);
+        
     }
 
     float fSpecularFactor = 0.0f;
@@ -93,6 +93,12 @@ float4 PointLight(int nIndex, float3 vPosition, float3 vNormal)
         float3 vHalf = normalize(vToLight + vView);
         fSpecularFactor = pow(max(dot(normalize(vNormal), vHalf), 0.0f), 1);
     }
+    else
+    {
+        return float4(0.0f, 0.0f, 0.0f, 1.0f);
+    }
+    
+        
 
     float fAttenuationFactor = 1.0f / (1.0f + gLights[nIndex].m_fAttenuation * fDistance * fDistance);
    

@@ -26,4 +26,6 @@ public:
 
     // 축 정렬 경계 상자(AABB)가 Frustum과 교차하는지 확인
     bool IntersectsAABB(const FVector& Min, const FVector& Max) const;
+
+    float GetDistanceToFrustum(const FVector& Point);
 };

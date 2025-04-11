@@ -94,3 +94,19 @@ bool FFrustrum::IntersectsAABB(const FVector& Min, const FVector& Max) const
     }
     return true; // 모든 평면과 교차하거나 앞에 있음
 }
+
+float FFrustrum::GetDistanceToFrustum(const FVector& Point)
+{
+    float MinDistance = FLT_MAX;
+
+    // 각 절두체 평면과의 거리 계산
+    for (int i = 0; i < 6; ++i)  // 6개의 절두체 평면 가정
+    {
+        // 평면과 점 사이의 부호 있는 거리 계산
+        float Distance = FMath::Abs(FVector::DotProduct(Planes[i].Normal, Point) + Planes[i].Distance);
+
+        MinDistance = FMath::Min(MinDistance, Distance);
+    }
+
+    return MinDistance;
+}
