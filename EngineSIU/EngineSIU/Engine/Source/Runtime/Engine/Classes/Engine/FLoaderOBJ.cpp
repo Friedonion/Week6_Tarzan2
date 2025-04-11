@@ -313,6 +313,30 @@ bool FLoaderOBJ::ParseMaterial(FObjInfo& OutObjInfo, OBJ::FStaticMeshRenderData&
 
             CreateTextureFromFile(OutFStaticMesh.Materials[MaterialIndex].DiffuseTexturePath);
         }
+        if (Token == "map_Bump")
+        {
+            FString LastToken;
+
+            while (LineStream >> Line)
+            {
+                if (Line == "-bm")
+                {
+                    // bump strength 값 스킵
+                    float dummy;
+                    LineStream >> dummy;
+                }
+                else
+                {
+                    LastToken = Line;
+                }
+            }
+
+            OutFStaticMesh.Materials[MaterialIndex].BumpTextureName = LastToken;
+            FWString TexturePath = OutObjInfo.FilePath + LastToken.ToWideString();
+            OutFStaticMesh.Materials[MaterialIndex].BumpTexturePath = TexturePath;
+            OutFStaticMesh.Materials[MaterialIndex].bHasTexture = true;
+            CreateTextureFromFile(OutFStaticMesh.Materials[MaterialIndex].BumpTexturePath);
+        }
     }
 
     return true;
