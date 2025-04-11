@@ -86,6 +86,9 @@ void ControlEditorPanel::Render()
     ImGui::PopFont();
 
     ImGui::End();
+
+
+    SpawnTestLights();
 }
 
 void ControlEditorPanel::CreateMenuButton(ImVec2 ButtonSize, ImFont* IconFont)
@@ -355,6 +358,49 @@ void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
         }
         ImGui::EndPopup();
     }
+
+}
+
+void ControlEditorPanel::SpawnTestLights()
+{
+    // ImGui 입력을 위한 정적 변수
+    static int gridWidth = 5;
+    static int gridHeight = 5;
+
+    // ImGui 인터페이스 시작
+    ImGui::Begin("Fireball Grid Generator");
+
+    // 그리드 크기 입력 받기
+    ImGui::InputInt("Grid Width", &gridWidth);
+    ImGui::InputInt("Grid Height", &gridHeight);
+
+    // 입력값 범위 제한
+    if (gridWidth < 1) gridWidth = 1;
+    if (gridHeight < 1) gridHeight = 1;
+
+    // 생성 버튼
+    if (ImGui::Button("Spawn Fireball Grid"))
+    {
+        UWorld* World = GEngine->ActiveWorld;
+        AActor* SpawnedActor = nullptr;
+        // 바둑판 형태로 액터 생성
+        for (int row = 0; row < gridHeight; row++)
+        {
+            for (int col = 0; col < gridWidth; col++)
+            {
+                // 기존의 액터 스폰 로직 사용
+                SpawnedActor = World->SpawnActor<AFireballActor>();
+                SpawnedActor->SetActorLabel(FString::Printf(TEXT("OBJ_Fireball_%d_%d"), row, col));
+
+                // 바둑판 형태로 위치 설정
+                float xPos = col * 5.f;
+                float yPos = row * 5.f;
+                SpawnedActor->SetActorLocation(FVector(xPos, yPos, 0.0f));
+            }
+        }
+    }
+
+    ImGui::End();
 }
 
 void ControlEditorPanel::CreateFlagButton() const

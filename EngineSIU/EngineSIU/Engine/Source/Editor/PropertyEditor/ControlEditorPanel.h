@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "Components/ActorComponent.h"
 #include "UnrealEd/EditorPanel.h"
 
@@ -12,6 +12,7 @@ public:
 private:
     void CreateMenuButton(ImVec2 ButtonSize, ImFont* IconFont);
     void CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont);
+    void SpawnTestLights();
     void CreateFlagButton() const;
     void CreatePIEButton(ImVec2 ButtonSize, ImFont* IconFont) const;
     void CreateSRTButton(ImVec2 ButtonSize) const;

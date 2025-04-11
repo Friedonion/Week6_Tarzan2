@@ -136,12 +136,12 @@ void PropertyEditorPanel::Render()
                 */
 
                 float attenuation = lightObj->GetAttenuation();
-                if (ImGui::SliderFloat("Attenuation", &attenuation, 0.01f, 10000.f, "%.1f")) {
+                if (ImGui::SliderFloat("Attenuation", &attenuation, 0.01f, 100.f, "%.1f")) {
                     lightObj->SetAttenuation(attenuation);
                 }
 
                 float AttenuationRadius = lightObj->GetAttenuationRadius();
-                if (ImGui::SliderFloat("Attenuation Radius", &AttenuationRadius, 0.01f, 10000.f, "%.1f")) {
+                if (ImGui::SliderFloat("Radius", &AttenuationRadius, 0.01f, 100.f, " % .1f")) {
                     lightObj->SetAttenuationRadius(AttenuationRadius);
                 }
 
