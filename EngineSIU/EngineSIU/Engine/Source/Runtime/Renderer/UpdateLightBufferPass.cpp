@@ -12,8 +12,9 @@
 #include "World/World.h"
 #include "EngineLoop.h"
 #include "GameFramework/Actor.h"
-
 #include "UObject/UObjectIterator.h"
+#include "Editor/UnrealEd/EditorViewportClient.h"
+#include <FFrustrum.h>
 
 //------------------------------------------------------------------------------
 // 생성자/소멸자
@@ -59,16 +60,26 @@ void FUpdateLightBufferPass::Render(const std::shared_ptr<FEditorViewportClient>
     FLightBuffer LightBufferData = {};
     int LightCount = 0;
 
+    FFrustrum Frustrum;
+    FMatrix ViewProjMatrix = Viewport->GetViewMatrix() * Viewport->GetProjectionMatrix();
+    Frustrum.MaekFrustrum(ViewProjMatrix);
+  
+
     LightBufferData.GlobalAmbientLight = FVector4(0.1f, 0.1f, 0.1f, 1.f);
     for (auto Light : PointLights)
     {
-        if (LightCount < MAX_LIGHTS)
+        if (LightCount == MAX_LIGHTS) 
+        {
+            break;
+        }
+
+        if (Frustrum.ContainsPoint(Light->GetWorldLocation()))
         {
             LightBufferData.gLights[LightCount] = Light->GetLightInfo();
             LightBufferData.gLights[LightCount].Position = Light->GetWorldLocation();
-
-            LightCount++;
         }
+
+        LightCount++;
     }
 
     for (auto Light : SpotLights)

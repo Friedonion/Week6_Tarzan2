@@ -389,12 +389,12 @@ void ControlEditorPanel::SpawnTestLights()
             for (int col = 0; col < gridWidth; col++)
             {
                 // 기존의 액터 스폰 로직 사용
-                SpawnedActor = World->SpawnActor<AFireballActor>();
-                SpawnedActor->SetActorLabel(FString::Printf(TEXT("OBJ_Fireball_%d_%d"), row, col));
+                SpawnedActor = World->SpawnActor<ALight>();
+                SpawnedActor->SetActorLabel(FString::Printf(TEXT("OBJ_Light%d_%d"), row, col));
 
                 // 바둑판 형태로 위치 설정
-                float xPos = col * 5.f;
-                float yPos = row * 5.f;
+                float xPos = col * 10.f;
+                float yPos = row * 10.f;
                 SpawnedActor->SetActorLocation(FVector(xPos, yPos, 0.0f));
             }
         }
