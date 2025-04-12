@@ -34,6 +34,21 @@ void FUpdateLightBufferPass::Initialize(FDXDBufferManager* InBufferManager, FGra
     ShaderManager = InShaderManager;
 }
 
+
+void SortLightsByDistance(TArray<UPointLightComponent*>& Lights, const FVector& CameraPosition)
+{
+    // 비교 함수: 카메라에 가까운 라이트가 앞으로 오도록 정렬
+    auto CompareByDistance = [&CameraPosition](const UPointLightComponent* A, const UPointLightComponent* B) -> bool {
+        float DistA = FVector::Distance(A->GetWorldLocation(), CameraPosition);
+        float DistB = FVector::Distance(B->GetWorldLocation(), CameraPosition);
+        return DistA < DistB;
+        };
+
+    // 정렬 수행
+    std::sort(Lights.GetData(), Lights.GetData() + Lights.Num(), CompareByDistance);
+}
+
+
 void FUpdateLightBufferPass::PrepareRender()
 {
     for (const auto iter : TObjectRange<ULightComponent>())
@@ -65,10 +80,10 @@ void FUpdateLightBufferPass::Render(const std::shared_ptr<FEditorViewportClient>
     LightBufferData.GlobalAmbientLight = FVector4(0.1f, 0.1f, 0.1f, 1.f);
     for (auto Light : PointLights)
     {
-        if (LightCount == MAX_LIGHTS) 
-        {
-            break;
-        }
+        //if (LightCount == MAX_LIGHTS) 
+        //{
+        //    break;
+        //}
 
         FVector LightPos = Light->GetWorldLocation();
 
@@ -76,13 +91,27 @@ void FUpdateLightBufferPass::Render(const std::shared_ptr<FEditorViewportClient>
         float LightRange = Light->GetAttenuationRadius();
 
         if (Frustrum.IntersectsSphere(LightPos, LightRange))
-        {
-            LightBufferData.gLights[LightCount] = Light->GetLightInfo();
-            LightBufferData.gLights[LightCount].Position = Light->GetWorldLocation();
-            LightCount++;
+        {   
+            VisiblePointLights.Add(Light);
         }
-         
+
     }
+
+    SortLightsByDistance(VisiblePointLights, Viewport->ViewTransformPerspective.GetLocation());
+
+    for (auto Light : VisiblePointLights)
+    {
+        if (LightCount == MAX_LIGHTS)
+        {
+            break;
+        }
+
+        LightBufferData.gLights[LightCount] = Light->GetLightInfo();
+        LightBufferData.gLights[LightCount].Position = Light->GetWorldLocation();
+        LightCount++;
+    }
+
+
 
     for (auto Light : SpotLights)
     {
@@ -109,6 +138,7 @@ void FUpdateLightBufferPass::Render(const std::shared_ptr<FEditorViewportClient>
 
 void FUpdateLightBufferPass::ClearRenderArr()
 {
+    VisiblePointLights.Empty();
     PointLights.Empty();
     SpotLights.Empty();
 }

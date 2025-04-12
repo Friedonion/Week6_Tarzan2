@@ -27,6 +27,7 @@ public:
 private:
     TArray<USpotLightComponent*> SpotLights;
     TArray<UPointLightComponent*> PointLights;
+    TArray<UPointLightComponent*> VisiblePointLights;
 
     FDXDBufferManager* BufferManager;
     FGraphicsDevice* Graphics;
