@@ -45,8 +45,9 @@ float4 DirLight(int nIndex, float3 vPosition, float3 vNormal)
     float fDiffuseFactor = saturate(dot(vNormal, vToLight));
     float fSpecularFactor = pow(saturate(dot(vHalf, vNormal)), Material.SpecularScalar);
 
-    float3 lit = (gLights[nIndex].m_cDiffuse.rgb * fDiffuseFactor * Material.DiffuseColor) +
-                 (gLights[nIndex].m_cSpecular.rgb * fSpecularFactor * Material.SpecularColor);
+    float3 lit = (gcGlobalAmbientLight * Material.AmbientColor.rgb) +
+                (gLights[nIndex].m_cDiffuse.rgb * fDiffuseFactor * Material.DiffuseColor) +
+                (gLights[nIndex].m_cSpecular.rgb * fSpecularFactor * Material.SpecularColor);
 
     return float4(lit, 1.0);
 }
@@ -141,6 +142,29 @@ float BlinnPhongLightingModel(float3 vToLight, float3 vPosition, float3 vNormal)
     return pow(max(dot(normalize(vNormal), vHalf), 0.0f), 1);
 }
 
+float4 CalculateDirLight(int nIndex, float3 vPosition, float3 vNormal)
+{
+    float3 vToLight = normalize(-gLights[nIndex].m_vDirection);
+    float3 vView = normalize(CameraPosition - vPosition);
+    
+    if (dot(vNormal, vToLight) < 0.0f)
+        return float4(0.0f, 0.0f, 0.0f, 1.0f);
+    
+    float3 ambientLight = gcGlobalAmbientLight * Material.AmbientColor.rgb;
+    float3 lit;
+
+#if LIGHTING_MODEL_GOURAUD
+    lit = 0.0f;
+#elif LIGHTING_MODEL_LAMBERT
+    // float4 baseColor = hasTexture ? albedo : float4(1, 1, 1, 1);
+    float3 safeDiffuse = (length(Material.DiffuseColor) < 0.001f)  ? float3(1,1,1)  : Material.DiffuseColor;
+    lit = ambientLight + gLights[nIndex].m_cDiffuse.rgb * LambertLightingModel(vToLight, vNormal) * safeDiffuse;
+#elif LIGHTING_MODEL_BLINNPHONG
+    lit = ambientLight + gLights[nIndex].m_cSpecular.rgb * BlinnPhongLightingModel(vToLight, vPosition, vNormal) * Material.SpecularColor;
+#endif
+    
+    return float4(lit, 1.0);
+}
 
 float4 CalculatePointLight(int nIndex, float3 vPosition, float3 vNormal)
 {
@@ -222,7 +246,7 @@ float4 Lighting(float3 vPosition, float3 vNormal)
         {
             if (gLights[i].m_nType == DIR_LIGHT)
             {
-                cColor += DirLight(i, vPosition, vNormal);
+                cColor += CalculateDirLight(i, vPosition, vNormal);
             }
             else if (gLights[i].m_nType == POINT_LIGHT)
             {
