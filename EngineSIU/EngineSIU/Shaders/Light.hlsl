@@ -8,7 +8,7 @@
 
 struct LIGHT
 {
-     float3 m_cDiffuse; // Diffuse Color
+    float3 m_cDiffuse;
     float pad2;
 
     float3 m_cSpecular; // Specular Color
@@ -124,6 +124,53 @@ float4 PointLight(int nIndex, float3 vPosition, float3 vNormal)
     return float4(lit * fAttenuationFactor * gLights[nIndex].m_fIntensity, 1.0);
 }
 
+float GouraudLightingModel()
+{
+    return 0;
+}
+
+float LambertLightingModel(float3 vToLight, float3 vNormal)
+{
+    return saturate(dot(vNormal, vToLight));
+}
+
+float BlinnPhongLightingModel(float3 vToLight, float3 vPosition, float3 vNormal)
+{
+    float3 vView = normalize(CameraPosition - vPosition);
+    float3 vHalf = normalize(vToLight + vView);
+    return pow(max(dot(normalize(vNormal), vHalf), 0.0f), 1);
+}
+
+
+float4 CalculatePointLight(int nIndex, float3 vPosition, float3 vNormal)
+{
+    float3 vToLight = gLights[nIndex].m_vPosition - vPosition;
+    float fDistance = length(vToLight);
+
+    // 감쇠 반경을 벗어나면 기여하지 않음
+    if (fDistance > gLights[nIndex].m_fAttRadius)
+    {
+        return float4(0.0f, 0.0f, 0.0f, 1.0f);
+    }
+
+    vToLight /= fDistance; // 정규화    
+    float3 ambientLight = gcGlobalAmbientLight * Material.AmbientColor.rgb;
+    float3 lit;
+
+#if LIGHTING_MODEL_GOURAUD
+    lit = 0.0f;
+#elif LIGHTING_MODEL_LAMBERT
+    // float4 baseColor = hasTexture ? albedo : float4(1, 1, 1, 1);
+    float3 safeDiffuse = (length(Material.DiffuseColor) < 0.001f)  ? float3(1,1,1)  : Material.DiffuseColor;
+    lit = ambientLight + gLights[nIndex].m_cDiffuse.rgb * LambertLightingModel(vToLight, vNormal) * safeDiffuse;
+#elif LIGHTING_MODEL_BLINNPHONG
+    lit = ambientLight + gLights[nIndex].m_cSpecular.rgb * BlinnPhongLightingModel(vToLight, vPosition, vNormal) * Material.SpecularColor;
+#endif
+    float fAttenuationFactor = 1.0f / (1.0f + gLights[nIndex].m_fAttenuation * fDistance * fDistance);
+
+    return float4(lit * fAttenuationFactor * gLights[nIndex].m_fIntensity, 1.0f);
+}
+
 float4 Lighting(float3 vPosition, float3 vNormal)
 {
     float4 cColor = float4(0.0f, 0.0f, 0.0f, 0.0f);
@@ -138,7 +185,7 @@ float4 Lighting(float3 vPosition, float3 vNormal)
             }
             else if (gLights[i].m_nType == POINT_LIGHT)
             {
-                cColor += PointLight(i, vPosition, vNormal);
+                cColor += CalculatePointLight(i, vPosition, vNormal);
             }
             else if (gLights[i].m_nType == SPOT_LIGHT)
             {
@@ -153,8 +200,3 @@ float4 Lighting(float3 vPosition, float3 vNormal)
     
     return cColor;
 }
-
-
-
-
-
