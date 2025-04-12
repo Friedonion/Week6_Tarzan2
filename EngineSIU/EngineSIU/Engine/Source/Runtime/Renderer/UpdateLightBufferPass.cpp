@@ -70,13 +70,10 @@ void FUpdateLightBufferPass::Render(const std::shared_ptr<FEditorViewportClient>
             break;
         }
 
-        FVector LightPos = Light->GetRelativeLocation();
+        FVector LightPos = Light->GetWorldLocation();
 
         // 광원의 유효 범위
         float LightRange = Light->GetAttenuationRadius();
-
-        
-        std::cout << Frustrum.IntersectsSphere(LightPos, LightRange) << std::endl;
 
         if (Frustrum.IntersectsSphere(LightPos, LightRange))
         {

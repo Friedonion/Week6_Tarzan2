@@ -393,8 +393,8 @@ void ControlEditorPanel::SpawnTestLights()
                 SpawnedActor->SetActorLabel(FString::Printf(TEXT("OBJ_Light%d_%d"), row, col));
 
                 // 바둑판 형태로 위치 설정
-                float xPos = col * 10.f;
-                float yPos = row * 10.f;
+                float xPos = col * 50.f;
+                float yPos = row * 50.f;
                 SpawnedActor->SetActorLocation(FVector(xPos, yPos, 0.0f));
             }
         }
