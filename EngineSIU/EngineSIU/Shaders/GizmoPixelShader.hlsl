@@ -38,7 +38,7 @@ struct PS_INPUT
     float3 worldPos : TEXCOORD0; // 월드 공간 위치
     float4 color : COLOR; // 전달된 베이스 컬러
     float3 normal : NORMAL; // 월드 공간 노멀
-    float2 texcoord : TEXCOORD2; // UV 좌표
+    float2 texcoord : TEXCOORD1; // UV 좌표
     int materialIndex : MATERIAL_INDEX; // 머티리얼 인덱스
 };
 

@@ -78,6 +78,13 @@ float ULightComponent::GetFalloff()
     return Light.Falloff;
 }
 
+FLight ULightComponent::GetLightInfo()
+{
+    Light.Position = GetWorldLocation();
+    Light.Direction = GetWorldForwardVector();
+    return Light;
+}
+
 void ULightComponent::InitializeLight()
 {  
     AABB.max = { 1.f,1.f,0.1f };
@@ -85,11 +92,6 @@ void ULightComponent::InitializeLight()
     
     Light = FLight();
     Light.Enabled = 1;
-}
-
-void ULightComponent::TickComponent(float DeltaTime)
-{
-    Super::TickComponent(DeltaTime);
 }
 
 int ULightComponent::CheckRayIntersection(FVector& rayOrigin, FVector& rayDirection, float& pfNearHitDistance)

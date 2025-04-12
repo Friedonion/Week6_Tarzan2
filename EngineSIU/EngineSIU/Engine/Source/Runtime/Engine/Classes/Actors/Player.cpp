@@ -37,21 +37,22 @@ void AEditorPlayer::Input()
             GetCursorPos(&m_LastMousePos);
 
             uint32 UUID = FEngineLoop::GraphicDevice.GetPixelUUID(mousePos);
-            // TArray<UObject*> objectArr = GetWorld()->GetObjectArr();
-            for ( const USceneComponent* obj : TObjectRange<USceneComponent>())
-            {
-                if (obj->GetUUID() != UUID) continue;
+            if ( UUID >= 0 ) {
+                // TArray<UObject*> objectArr = GetWorld()->GetObjectArr();
+                for ( const USceneComponent* obj : TObjectRange<USceneComponent>() ) {
+                    if ( obj->GetUUID() != UUID ) continue;
 
-                UE_LOG(LogLevel::Display, *obj->GetName());
+                    UE_LOG(LogLevel::Display, *obj->GetName());
+                }
+                ScreenToClient(GEngineLoop.hWnd, &mousePos);
+
+                FVector pickPosition;
+
+                std::shared_ptr<FEditorViewportClient> ActiveViewport = GEngineLoop.GetLevelEditor()->GetActiveViewportClient();
+                ScreenToViewSpace(mousePos.x, mousePos.y, ActiveViewport->GetViewMatrix(), ActiveViewport->GetProjectionMatrix(), pickPosition);
+                bool res = PickGizmo(pickPosition, ActiveViewport.get());
+                if ( !res ) PickActor(pickPosition);
             }
-            ScreenToClient(GEngineLoop.hWnd, &mousePos);
-
-            FVector pickPosition;
-
-            std::shared_ptr<FEditorViewportClient> ActiveViewport = GEngineLoop.GetLevelEditor()->GetActiveViewportClient();
-            ScreenToViewSpace(mousePos.x, mousePos.y, ActiveViewport->GetViewMatrix(), ActiveViewport->GetProjectionMatrix(), pickPosition);
-            bool res = PickGizmo(pickPosition, ActiveViewport.get());
-            if (!res) PickActor(pickPosition);
         }
         else
         {

@@ -277,8 +277,9 @@ struct FPrimitiveCounts
 
 #define MAX_LIGHTS 16
 enum ELightType {
-    POINT_LIGHT = 1,
-    SPOT_LIGHT = 2
+    DIR_LIGHT = 1,
+    POINT_LIGHT = 2,
+    SPOT_LIGHT = 3
 };
 
 struct FLight
@@ -299,7 +300,7 @@ struct FLight
     int   Enabled;
     int   Type;
     float Intensity = 1000.f;    // m_fIntensity: 광원 강도
-    float AttRadius = 100.f;    // m_fAttRadius: 감쇠 반경
+    float AttRadius = 10.f;    // m_fAttRadius: 감쇠 반경
     FVector LightPad;
 };
 

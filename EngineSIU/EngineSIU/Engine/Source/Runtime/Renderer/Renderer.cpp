@@ -15,6 +15,7 @@
 #include <UObject/UObjectIterator.h>
 #include <UObject/Casts.h>
 #include "GameFrameWork/Actor.h"
+#include <FFrustrum.h>
 
 //------------------------------------------------------------------------------
 // 초기화 및 해제 관련 함수
@@ -122,6 +123,8 @@ void FRenderer::Render(const std::shared_ptr<FEditorViewportClient>& ActiveViewp
     Graphics->DeviceContext->RSSetViewports(1, &ActiveViewport->GetD3DViewport());
 
     Graphics->ChangeRasterizer(ActiveViewport->GetViewMode());
+
+    FFrustrum::Get().UpdateFrustrum(ActiveViewport->GetViewMatrix() * ActiveViewport->GetProjectionMatrix());
 
     StaticMeshRenderPass->Render(ActiveViewport);
     UpdateLightBufferPass->Render(ActiveViewport);

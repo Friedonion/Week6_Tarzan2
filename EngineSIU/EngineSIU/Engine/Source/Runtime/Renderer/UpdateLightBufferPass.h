@@ -9,8 +9,7 @@ class FDXDShaderManager;
 class UWorld;
 class FEditorViewportClient;
 
-class UPointLightComponent;
-class USpotLightComponent;
+class ULightComponent;
 
 class FUpdateLightBufferPass : public IRenderPass
 {
@@ -25,8 +24,8 @@ public:
     void UpdateLightBuffer(FLight Light) const;
 
 private:
-    TArray<USpotLightComponent*> SpotLights;
-    TArray<UPointLightComponent*> PointLights;
+    TArray<ULightComponent*> VisiblePointLights;
+    TArray<ULightComponent*> Lights;
 
     FDXDBufferManager* BufferManager;
     FGraphicsDevice* Graphics;

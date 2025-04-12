@@ -61,6 +61,12 @@ FVector USceneComponent::GetUpVector()
 	return Up;
 }
 
+FVector USceneComponent::GetWorldForwardVector() const
+{
+	FVector Forward = FVector(1.f, 0.f, 0.0f);
+	Forward = JungleMath::FVectorRotate(Forward, GetWorldRotation());
+	return Forward;
+}
 
 void USceneComponent::AddLocation(FVector InAddValue)
 {
