@@ -19,7 +19,8 @@ public:
     virtual FVector GetForwardVector();
     virtual FVector GetRightVector();
     virtual FVector GetUpVector();
-    
+    FVector GetWorldForwardVector() const;
+
     void AddLocation(FVector InAddValue);
     void AddRotation(FVector InAddValue);
     void AddScale(FVector InAddValue);

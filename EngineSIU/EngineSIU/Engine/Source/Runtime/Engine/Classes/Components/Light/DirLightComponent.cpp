@@ -8,8 +8,3 @@ UDirLightComponent::UDirLightComponent()
 UDirLightComponent::~UDirLightComponent()
 {
 }
-
-void UDirLightComponent::TickComponent(float DeltaTime)
-{
-    Super::TickComponent(DeltaTime);
-}

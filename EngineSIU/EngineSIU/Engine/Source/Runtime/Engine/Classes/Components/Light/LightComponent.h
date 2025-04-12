@@ -12,7 +12,6 @@ public:
     virtual ~ULightComponent() override;
     virtual UObject* Duplicate(UObject* InOuter) override;
 
-    virtual void TickComponent(float DeltaTime) override;
     virtual int CheckRayIntersection(FVector& rayOrigin, FVector& rayDirection, float& pfNearHitDistance) override;
     void InitializeLight();
     
@@ -28,7 +27,7 @@ public:
     float GetAttenuation();
     float GetAttenuationRadius();
     float GetFalloff();
-    FLight GetLightInfo() const;
+    FLight GetLightInfo();
 protected:
 
     FBoundingBox AABB;

@@ -78,8 +78,10 @@ float ULightComponent::GetFalloff()
     return Light.Falloff;
 }
 
-FLight ULightComponent::GetLightInfo() const
+FLight ULightComponent::GetLightInfo()
 {
+    Light.Position = GetWorldLocation();
+    Light.Direction = GetWorldForwardVector();
     return Light;
 }
 
@@ -90,13 +92,6 @@ void ULightComponent::InitializeLight()
     
     Light = FLight();
     Light.Enabled = 1;
-}
-
-void ULightComponent::TickComponent(float DeltaTime)
-{
-    Super::TickComponent(DeltaTime);
-    Light.Position = GetWorldLocation();
-    Light.Direction = GetForwardVector();
 }
 
 int ULightComponent::CheckRayIntersection(FVector& rayOrigin, FVector& rayDirection, float& pfNearHitDistance)

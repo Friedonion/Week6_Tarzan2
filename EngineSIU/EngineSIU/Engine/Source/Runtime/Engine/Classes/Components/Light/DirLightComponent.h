@@ -7,7 +7,6 @@ class UDirLightComponent: public ULightComponent
 public:
     UDirLightComponent();
     ~UDirLightComponent();
-    virtual void TickComponent(float DeltaTime) override;
 private:
     FVector Direction;
 };

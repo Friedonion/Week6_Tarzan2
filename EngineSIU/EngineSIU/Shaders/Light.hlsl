@@ -39,17 +39,16 @@ cbuffer cbLights : register(b2)
 
 float4 DirLight(int nIndex, float3 vPosition, float3 vNormal)
 {
-    float3 vToLight = gLights[nIndex].m_vDirection;
+    float3 vToLight = normalize(-gLights[nIndex].m_vDirection);
     float3 vView = normalize(CameraPosition - vPosition);
     float3 vHalf = normalize(vView + vToLight);
     float fDiffuseFactor = saturate(dot(vNormal, vToLight));
     float fSpecularFactor = pow(saturate(dot(vHalf, vNormal)), Material.SpecularScalar);
 
-    float3 lit = (gcGlobalAmbientLight * Material.AmbientColor.rgb) +
-                 (gLights[nIndex].m_cDiffuse.rgb * fDiffuseFactor * Material.DiffuseColor) +
+    float3 lit = (gLights[nIndex].m_cDiffuse.rgb * fDiffuseFactor * Material.DiffuseColor) +
                  (gLights[nIndex].m_cSpecular.rgb * fSpecularFactor * Material.SpecularColor);
 
-    return float4(lit * gLights[nIndex].m_fIntensity, 1.0);
+    return float4(lit, 1.0);
 }
 
 float4 SpotLight(int nIndex, float3 vPosition, float3 vNormal)
