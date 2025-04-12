@@ -268,7 +268,9 @@ void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
         static const Primitive primitives[] = {
             { .label= "Cube",      .obj= OBJ_CUBE },
             { .label= "Sphere",    .obj= OBJ_SPHERE },
+            { .label= "DirLight", .obj= OBJ_DirLight },
             { .label= "PointLight", .obj= OBJ_PointLight },
+            { .label= "SpotLight", .obj= OBJ_SpotLight },
             { .label= "Particle",  .obj= OBJ_PARTICLE },
             { .label= "Text",      .obj= OBJ_Text },
             { .label= "Fireball",  .obj = OBJ_Fireball},
@@ -299,10 +301,22 @@ void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
                     CubeActor->SetActorLabel(TEXT("OBJ_CUBE"));
                     break;
                 }
+                case OBJ_DirLight:
+                {
+                    ADirectionLight* LightActor = World->SpawnActor<ADirectionLight>();
+                    LightActor->SetActorLabel(TEXT("OBJ_DirLight"));
+                    break;
+                }
                 case OBJ_PointLight:
                 {
-                    ALight* LightActor = World->SpawnActor<ALight>();
+                    APointLight* LightActor = World->SpawnActor<APointLight>();
                     LightActor->SetActorLabel(TEXT("OBJ_PointLight"));
+                    break;
+                }
+                case OBJ_SpotLight:
+                {
+                    ASpotLight* LightActor = World->SpawnActor<ASpotLight>();
+                    LightActor->SetActorLabel(TEXT("OBJ_SpotLight"));
                     break;
                 }
                 case OBJ_PARTICLE:
@@ -341,7 +355,6 @@ void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
                     SpawnedActor->SetActorLabel(TEXT("OBJ_HeightFog"));
                     break;
                 }
-                case OBJ_SpotLight:
                 case OBJ_TRIANGLE:
                 case OBJ_CAMERA:
                 case OBJ_PLAYER:
@@ -389,7 +402,7 @@ void ControlEditorPanel::SpawnTestLights()
             for (int col = 0; col < gridWidth; col++)
             {
                 // 기존의 액터 스폰 로직 사용
-                SpawnedActor = World->SpawnActor<ALight>();
+                SpawnedActor = World->SpawnActor<APointLight>();
                 SpawnedActor->SetActorLabel(FString::Printf(TEXT("OBJ_Light%d_%d"), row, col));
 
                 // 바둑판 형태로 위치 설정

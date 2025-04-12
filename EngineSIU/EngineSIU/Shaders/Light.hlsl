@@ -2,21 +2,22 @@
 
 #define MAX_LIGHTS 16 
 
-#define POINT_LIGHT         1
-#define SPOT_LIGHT          2
+#define DIR_LIGHT           1
+#define POINT_LIGHT         2
+#define SPOT_LIGHT          3
 
 struct LIGHT
 {
-     float3 m_cDiffuse;
+     float3 m_cDiffuse; // Diffuse Color
     float pad2;
 
-    float3 m_cSpecular;
+    float3 m_cSpecular; // Specular Color
     float pad3;
 
-    float3 m_vPosition;
+    float3 m_vPosition; // position of light (used in point, spot)
     float m_fFalloff; // 스팟라이트의 감쇠 인자
 
-    float3 m_vDirection;
+    float3 m_vDirection;    // direction (used in directional, spot)
     float pad4;
 
     float m_fAttenuation; // 거리 기반 감쇠 계수
@@ -35,6 +36,21 @@ cbuffer cbLights : register(b2)
     int gnLights;
     float3 padCB;
 };
+
+float4 DirLight(int nIndex, float3 vPosition, float3 vNormal)
+{
+    float3 vToLight = gLights[nIndex].m_vDirection;
+    float3 vView = normalize(CameraPosition - vPosition);
+    float3 vHalf = normalize(vView + vToLight);
+    float fDiffuseFactor = saturate(dot(vNormal, vToLight));
+    float fSpecularFactor = pow(saturate(dot(vHalf, vNormal)), Material.SpecularScalar);
+
+    float3 lit = (gcGlobalAmbientLight * Material.AmbientColor.rgb) +
+                 (gLights[nIndex].m_cDiffuse.rgb * fDiffuseFactor * Material.DiffuseColor) +
+                 (gLights[nIndex].m_cSpecular.rgb * fSpecularFactor * Material.SpecularColor);
+
+    return float4(lit * gLights[nIndex].m_fIntensity, 1.0);
+}
 
 float4 SpotLight(int nIndex, float3 vPosition, float3 vNormal)
 {
@@ -57,7 +73,7 @@ float4 SpotLight(int nIndex, float3 vPosition, float3 vNormal)
     {
         float3 vView = normalize(CameraPosition - vPosition);
         float3 vHalf = normalize(vToLight + vView);
-        fSpecularFactor = pow(max(dot(normalize(vNormal), vHalf), 0.0f), 1);
+        fSpecularFactor = pow(max(dot(normalize(vNormal), vHalf), 0.0f), Material.SpecularScalar);
     }
     
     float fSpotFactor = pow(max(dot(-vToLight, gLights[nIndex].m_vDirection), 0.0f), gLights[nIndex].m_fFalloff);
@@ -68,7 +84,7 @@ float4 SpotLight(int nIndex, float3 vPosition, float3 vNormal)
                  (gLights[nIndex].m_cSpecular.rgb * fSpecularFactor * Material.SpecularColor);
 
     // intensity와 attenuation factor, spot factor를 곱하여 최종 색상 계산
-    return float4(lit * fAttenuationFactor * fSpotFactor * gLights[nIndex].m_fIntensity, 1.0f);
+    return float4(lit * fAttenuationFactor * fSpotFactor * gLights[nIndex].m_fIntensity, 1.0);
 }
 
 float4 PointLight(int nIndex, float3 vPosition, float3 vNormal)
@@ -91,7 +107,7 @@ float4 PointLight(int nIndex, float3 vPosition, float3 vNormal)
     {
         float3 vView = normalize(CameraPosition - vPosition);
         float3 vHalf = normalize(vToLight + vView);
-        fSpecularFactor = pow(max(dot(normalize(vNormal), vHalf), 0.0f), 1);
+        fSpecularFactor = pow(max(dot(normalize(vNormal), vHalf), 0.0f), Material.SpecularScalar);
     }
     else
     {
@@ -106,7 +122,7 @@ float4 PointLight(int nIndex, float3 vPosition, float3 vNormal)
                  (gLights[nIndex].m_cDiffuse.rgb * fDiffuseFactor * Material.DiffuseColor) +
                  (gLights[nIndex].m_cSpecular.rgb * fSpecularFactor * Material.SpecularColor);
 
-    return float4(lit * fAttenuationFactor * gLights[nIndex].m_fIntensity, 1.0f);
+    return float4(lit * fAttenuationFactor * gLights[nIndex].m_fIntensity, 1.0);
 }
 
 float4 Lighting(float3 vPosition, float3 vNormal)
@@ -117,7 +133,11 @@ float4 Lighting(float3 vPosition, float3 vNormal)
     {
         if (gLights[i].m_bEnable)
         {
-            if (gLights[i].m_nType == POINT_LIGHT)
+            if (gLights[i].m_nType == DIR_LIGHT)
+            {
+                cColor += DirLight(i, vPosition, vNormal);
+            }
+            else if (gLights[i].m_nType == POINT_LIGHT)
             {
                 cColor += PointLight(i, vPosition, vNormal);
             }

@@ -1,12 +1,11 @@
 #include "Define.h"
 #include "UObject/Casts.h"
 #include "UpdateLightBufferPass.h"
+
 #include "D3D11RHI/DXDBufferManager.h"
 #include "D3D11RHI/GraphicDevice.h"
 #include "D3D11RHI/DXDShaderManager.h"
 #include "Components/Light/LightComponent.h"
-#include "Components/Light/PointLightComponent.h"
-#include "Components/Light/SpotLightComponent.h"
 #include "Engine/EditorEngine.h"
 #include "GameFramework/Actor.h"
 #include "UObject/UObjectIterator.h"
@@ -35,10 +34,10 @@ void FUpdateLightBufferPass::Initialize(FDXDBufferManager* InBufferManager, FGra
 }
 
 
-void SortLightsByDistance(TArray<UPointLightComponent*>& Lights, const FVector& CameraPosition)
+void SortLightsByDistance(TArray<ULightComponent*>& Lights, const FVector& CameraPosition)
 {
     // 비교 함수: 카메라에 가까운 라이트가 앞으로 오도록 정렬
-    auto CompareByDistance = [&CameraPosition](const UPointLightComponent* A, const UPointLightComponent* B) -> bool {
+    auto CompareByDistance = [&CameraPosition](const ULightComponent* A, const ULightComponent* B) -> bool {
         float DistA = FVector::Distance(A->GetWorldLocation(), CameraPosition);
         float DistB = FVector::Distance(B->GetWorldLocation(), CameraPosition);
         return DistA < DistB;
@@ -55,14 +54,7 @@ void FUpdateLightBufferPass::PrepareRender()
     {
         if (iter->GetWorld() == GEngine->ActiveWorld)
         {
-            if (UPointLightComponent* PointLight = Cast<UPointLightComponent>(iter))
-            {
-                PointLights.Add(PointLight);
-            }
-            else if (USpotLightComponent* SpotLight = Cast<USpotLightComponent>(iter))
-            {
-                SpotLights.Add(SpotLight);
-            }
+            Lights.Add(iter);
         }
     }
 }
@@ -74,7 +66,7 @@ void FUpdateLightBufferPass::Render(const std::shared_ptr<FEditorViewportClient>
 
 
     LightBufferData.GlobalAmbientLight = FVector4(0.1f, 0.1f, 0.1f, 1.f);
-    for (auto Light : PointLights)
+    for (auto Light : Lights)
     {
         FVector LightPos = Light->GetWorldLocation();
 
@@ -88,6 +80,7 @@ void FUpdateLightBufferPass::Render(const std::shared_ptr<FEditorViewportClient>
 
     }
 
+
     SortLightsByDistance(VisiblePointLights, Viewport->ViewTransformPerspective.GetLocation());
 
     for (auto Light : VisiblePointLights)
@@ -98,40 +91,16 @@ void FUpdateLightBufferPass::Render(const std::shared_ptr<FEditorViewportClient>
         }
 
         LightBufferData.gLights[LightCount] = Light->GetLightInfo();
-        LightBufferData.gLights[LightCount].Position = Light->GetWorldLocation();
         LightCount++;
     }
-
-
-
-    for (auto Light : SpotLights)
-    {
-        if (LightCount < MAX_LIGHTS)
-        {
-            //// 월드 변환 행렬 계산 (스케일 1로 가정)
-            //FMatrix Model = JungleMath::CreateModelMatrix(Light->GetWorldLocation(), Light->GetWorldRotation(), { 1, 1, 1 });
-
-            //FEngineLoop::PrimitiveDrawBatch.AddConeToBatch(Light->GetWorldLocation(), 100, Light->GetRange(), 140, {1,1,1,1}, Model);
-
-            //FEngineLoop::PrimitiveDrawBatch.AddOBBToBatch(Light->GetBoundingBox(), Light->GetWorldLocation(), Model);
-            LightBufferData.gLights[LightCount] = Light->GetLightInfo();
-            LightBufferData.gLights[LightCount].Position = Light->GetWorldLocation();
-            LightBufferData.gLights[LightCount].Direction = Light->GetForwardVector();
-            LightBufferData.gLights[LightCount].Type = ELightType::SPOT_LIGHT;
-
-            LightCount++;
-        }
-    }
     LightBufferData.nLights = LightCount;
-
     BufferManager->UpdateConstantBuffer(TEXT("FLightBuffer"), LightBufferData);
 }
 
 void FUpdateLightBufferPass::ClearRenderArr()
 {
     VisiblePointLights.Empty();
-    PointLights.Empty();
-    SpotLights.Empty();
+    Lights.Empty();
 }
 
 void FUpdateLightBufferPass::UpdateLightBuffer(FLight Light) const

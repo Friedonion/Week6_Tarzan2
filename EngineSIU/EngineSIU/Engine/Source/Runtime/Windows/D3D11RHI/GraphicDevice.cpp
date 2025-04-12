@@ -512,21 +512,25 @@ uint32 FGraphicsDevice::GetPixelUUID(POINT pt) const
     // pt.x 값 제한하기
     if (pt.x < 0)
     {
-        pt.x = 0;
+        return -1;
+        //pt.x = 0;
     }
     else if (pt.x > screenWidth)
     {
-        pt.x = screenWidth;
+        return -1;
+        // pt.x = screenWidth;
     }
 
     // pt.y 값 제한하기
     if (pt.y < 0)
     {
-        pt.y = 0;
+        return -1;
+        //pt.y = 0;
     }
     else if (pt.y > screenHeight)
     {
-        pt.y = screenHeight;
+        return -1;
+        //pt.y = screenHeight;
     }
 
     // 1. Staging 텍스처 생성 (1x1 픽셀)

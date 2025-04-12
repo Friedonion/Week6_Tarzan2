@@ -28,7 +28,7 @@ public:
     float GetAttenuation();
     float GetAttenuationRadius();
     float GetFalloff();
-    FLight GetLightInfo() const { return Light; };
+    FLight GetLightInfo() const;
 protected:
 
     FBoundingBox AABB;
