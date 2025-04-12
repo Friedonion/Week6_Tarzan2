@@ -288,10 +288,10 @@ struct FLight
     float pad1;
 
     FVector SpecularColor;
-    float pad2;
+    float InnerDegree;
 
     FVector Position;
-    float Falloff;
+    float OuterDegree;
 
     FVector Direction;
     float pad3;

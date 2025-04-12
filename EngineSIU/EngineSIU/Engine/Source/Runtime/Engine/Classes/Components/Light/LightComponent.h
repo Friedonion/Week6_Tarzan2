@@ -20,13 +20,11 @@ public:
     void SetAttenuation(float Attenuation);
     void SetAttenuationRadius(float AttenuationRadius);
     void SetIntensity(float Intensity);
-    void SetFalloff(float fallOff);
 
     FLinearColor GetDiffuseColor();
     FLinearColor GetSpecularColor();
     float GetAttenuation();
     float GetAttenuationRadius();
-    float GetFalloff();
     FLight GetLightInfo();
 protected:
 

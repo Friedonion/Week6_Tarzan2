@@ -48,11 +48,6 @@ void ULightComponent::SetIntensity(float Intensity)
     Light.Intensity = Intensity;
 }
 
-void ULightComponent::SetFalloff(float fallOff)
-{
-    Light.Falloff = fallOff;
-}
-
 FLinearColor ULightComponent::GetDiffuseColor()
 {
     return FLinearColor(Light.DiffuseColor.X, Light.DiffuseColor.Y, Light.DiffuseColor.Z, 1);
@@ -71,11 +66,6 @@ float ULightComponent::GetAttenuation()
 float ULightComponent::GetAttenuationRadius()
 {
     return Light.AttRadius;
-}
-
-float ULightComponent::GetFalloff()
-{
-    return Light.Falloff;
 }
 
 FLight ULightComponent::GetLightInfo()

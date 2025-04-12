@@ -15,10 +15,10 @@ struct LIGHT
     float pad3;
 
     float3 m_vPosition; // position of light (used in point, spot)
-    float m_fFalloff; // 스팟라이트의 감쇠 인자
+    float m_fInnerDegree; // spot light inner radius in degree
 
     float3 m_vDirection;    // direction (used in directional, spot)
-    float pad4;
+    float m_fOuterDegree; // spot light outer radius in degree
 
     float m_fAttenuation; // 거리 기반 감쇠 계수
     int m_bEnable;
@@ -75,7 +75,7 @@ float4 SpotLight(int nIndex, float3 vPosition, float3 vNormal)
         fSpecularFactor = pow(max(dot(normalize(vNormal), vHalf), 0.0f), Material.SpecularScalar);
     }
     
-    float fSpotFactor = pow(max(dot(-vToLight, gLights[nIndex].m_vDirection), 0.0f), gLights[nIndex].m_fFalloff);
+    float fSpotFactor = pow(max(dot(-vToLight, gLights[nIndex].m_vDirection), 0.0f), 1.0f); //gLights[nIndex].m_fFalloff);
     float fAttenuationFactor = 1.0f / (1.0f + gLights[nIndex].m_fAttenuation * fDistance * fDistance);
     
     float3 lit = (gcGlobalAmbientLight * Material.AmbientColor.rgb) +
@@ -149,9 +149,10 @@ float4 CalculatePointLight(int nIndex, float3 vPosition, float3 vNormal)
 
     // 감쇠 반경을 벗어나면 기여하지 않음
     if (fDistance > gLights[nIndex].m_fAttRadius)
-    {
         return float4(0.0f, 0.0f, 0.0f, 1.0f);
-    }
+
+    if (dot(vNormal, vToLight) < 0.0f)
+        return float4(0.0f, 0.0f, 0.0f, 1.0f);
 
     vToLight /= fDistance; // 정규화    
     float3 ambientLight = gcGlobalAmbientLight * Material.AmbientColor.rgb;
@@ -166,8 +167,48 @@ float4 CalculatePointLight(int nIndex, float3 vPosition, float3 vNormal)
 #elif LIGHTING_MODEL_BLINNPHONG
     lit = ambientLight + gLights[nIndex].m_cSpecular.rgb * BlinnPhongLightingModel(vToLight, vPosition, vNormal) * Material.SpecularColor;
 #endif
-    float fAttenuationFactor = 1.0f / (1.0f + gLights[nIndex].m_fAttenuation * fDistance * fDistance);
 
+    float normalizedRadius = fDistance / gLights[nIndex].m_fAttRadius;
+    float distanceAttenuation = 1.0f / (1.0f + gLights[nIndex].m_fAttenuation * fDistance * fDistance);
+    float radiusAttenuation = 1 - normalizedRadius * normalizedRadius;
+    float fAttenuationFactor = distanceAttenuation * radiusAttenuation;
+
+    return float4(lit * fAttenuationFactor * gLights[nIndex].m_fIntensity, 1.0f);
+}
+
+float4 CalculateSpotLight(int nIndex, float3 vPosition, float3 vNormal)
+{
+    float3 vToLight = normalize(gLights[nIndex].m_vPosition - vPosition);
+    float3 vLightDir = normalize(gLights[nIndex].m_vDirection);
+    float fDistance = length(gLights[nIndex].m_vPosition - vPosition);
+    
+    // 감쇠 반경을 벗어나면 기여하지 않음
+    if (fDistance > gLights[nIndex].m_fAttRadius)
+        return float4(0.0f, 0.0f, 0.0f, 1.0f);
+    if (dot(vNormal, vToLight) < 0.0f)
+        return float4(0.0f, 0.0f, 0.0f, 1.0f);
+    
+    float fCos = dot(vToLight, -vLightDir);
+    float fCosInner = cos(radians(gLights[nIndex].m_fInnerDegree));
+    float fCosOuter = cos(radians(gLights[nIndex].m_fOuterDegree));
+    float3 lit;
+    float3 ambientLight = gcGlobalAmbientLight * Material.AmbientColor.rgb;
+    
+#if LIGHTING_MODEL_GOURAUD
+    lit = 0.0f;
+#elif LIGHTING_MODEL_LAMBERT
+    // float4 baseColor = hasTexture ? albedo : float4(1, 1, 1, 1);
+    float3 safeDiffuse = (length(Material.DiffuseColor) < 0.001f)  ? float3(1,1,1)  : Material.DiffuseColor;
+    lit = ambientLight + gLights[nIndex].m_cDiffuse.rgb * LambertLightingModel(vToLight, vNormal) * safeDiffuse;
+#elif LIGHTING_MODEL_BLINNPHONG
+    lit = ambientLight + gLights[nIndex].m_cSpecular.rgb * BlinnPhongLightingModel(vToLight, vPosition, vNormal) * Material.SpecularColor;
+#endif
+    
+    float normalizedRadius = fDistance / gLights[nIndex].m_fAttRadius;
+    float distanceAttenuation = 1.0f / (1.0f + gLights[nIndex].m_fAttenuation * fDistance * fDistance);
+    float radiusAttenuation = 1 - normalizedRadius * normalizedRadius;
+    float fSpotAttenuation = 1 - saturate((fCos - fCosOuter) / (fCosInner - fCosOuter));
+    float fAttenuationFactor = fSpotAttenuation * radiusAttenuation * distanceAttenuation;
     return float4(lit * fAttenuationFactor * gLights[nIndex].m_fIntensity, 1.0f);
 }
 
@@ -189,7 +230,7 @@ float4 Lighting(float3 vPosition, float3 vNormal)
             }
             else if (gLights[i].m_nType == SPOT_LIGHT)
             {
-                cColor += SpotLight(i, vPosition, vNormal);
+                cColor += CalculateSpotLight(i, vPosition, vNormal);
             }
         }
     }
