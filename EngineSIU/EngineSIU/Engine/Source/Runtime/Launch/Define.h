@@ -107,6 +107,9 @@ struct FObjMaterialInfo
 
     FString AlphaTextureName;    // map_d : Alpha texture
     FWString AlphaTexturePath;
+
+    int TextureInfo = 0;
+//FString DisplacementTextureName; // map_disp : Displacement texture
 };
 
 // Cooked Data
@@ -320,8 +323,7 @@ struct FMaterialConstants {
     float SpecularScalar;
 
     FVector EmmisiveColor;
-    float MaterialPad0;
-
+    int TextureInfo; // 0b0001: Diffuse, 0b0010: Ambient, 0b0100: Specular, 0b1000: Bump
 };
 
 struct FPerObjectConstantBuffer {
@@ -415,3 +417,13 @@ struct FFogConstants
     float CameraFar;
     FVector padding;
 };
+
+enum ETextureType
+{
+    TEXTURE_Diffuse = 1 << 0, // 0b0001
+    TEXTURE_Ambient = 1 << 1, // 0b0010
+    TEXTURE_Specular = 1 << 2, // 0b0100
+    TEXTURE_Bump = 1 << 3  // 0b1000
+};
+
+

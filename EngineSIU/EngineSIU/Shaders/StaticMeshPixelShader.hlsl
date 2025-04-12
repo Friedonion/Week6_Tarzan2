@@ -1,7 +1,9 @@
 // staticMeshPixelShader.hlsl
 
 Texture2D Textures : register(t0);
+Texture2D NormalTextures : register(t1);
 SamplerState Sampler : register(s0);
+
 
 cbuffer MatrixConstants : register(b0)
 {
@@ -31,7 +33,7 @@ struct FMaterial
     float SpecularScalar;
     
     float3 EmissiveColor;
-    float MaterialPad0;
+    int TextureInfo; // 0b0001: Diffuse, 0b0010: Ambient, 0b0100: Specular, 0b1000: Bump
 };
 cbuffer MaterialConstants : register(b3)
 {
@@ -58,15 +60,16 @@ cbuffer TextureConstants : register(b6)
 #include "Light.hlsl"
 
 
+
 struct PS_INPUT
 {
     float4 position : SV_POSITION; // 클립 공간 화면 좌표
     float3 worldPos : TEXCOORD0; // 월드 공간 위치
     float4 color : COLOR; // 전달된 베이스 컬러
-    float3 normal : NORMAL; // 월드 공간 노멀
     float normalFlag : TEXCOORD1; // 노멀 유효 플래그
     float2 texcoord : TEXCOORD2; // UV 좌표
     int materialIndex : MATERIAL_INDEX; // 머티리얼 인덱스
+    float3x3 TBN : TANGENT; // 탄젠트 공간 (tangent, bitangent, normal)
 };
 
 struct PS_OUTPUT
@@ -75,37 +78,55 @@ struct PS_OUTPUT
     float4 UUID : SV_Target1;
 };
 
+float3 GetNormalFromMap(PS_INPUT input)
+{
+    // 노말 맵에서 RGB 가져오기 (값 범위: [0, 1])
+    float3 normalMap = NormalTextures.Sample(Sampler, input.texcoord).rgb;
+
+    // [-1, 1] 범위로 변환
+    normalMap = normalMap * 2.0f - 1.0f;
+
+    // 노말 맵의 노말을 월드 공간으로 변환
+    return normalize(mul(normalMap, input.TBN));
+}
+
 
 PS_OUTPUT mainPS(PS_INPUT input)
 {
     PS_OUTPUT output;
     output.UUID = UUID;
 
-    // 1) 알베도 샘플링
     float3 albedo = Textures.Sample(Sampler, input.texcoord).rgb;
-    // 2) 머티리얼 디퓨즈
     float3 matDiffuse = Material.DiffuseColor.rgb;
-    // 3) 라이트 계산
-
     bool hasTexture = any(albedo != float3(0, 0, 0));
-    
     float3 baseColor = hasTexture ? albedo : matDiffuse;
+    
+    bool HasDiffuseTexture = (Material.TextureInfo & 0x1) != 0;
+    bool HasBumpTexture = (Material.TextureInfo & 0x8) != 0;
+
+    float3 normalWS = input.TBN[2].xyz;
+
+    if (HasBumpTexture) // 노말맵이 유효한 경우
+    {
+        normalWS = GetNormalFromMap(input);
+    }
 
     if (IsLit)
     {
-        float3 lightRgb = Lighting(input.worldPos, input.normal).rgb;
+        float3 lightRgb = Lighting(input.worldPos, normalWS).rgb;
         float3 litColor = baseColor * lightRgb;
         output.color = float4(litColor, 1);
     }
     else
     {
         output.color = float4(baseColor, 1);
-        
     }
+
     if (isSelected)
     {
         output.color += float4(0.02, 0.02, 0.02, 1);
-
     }
+
     return output;
 }
+
