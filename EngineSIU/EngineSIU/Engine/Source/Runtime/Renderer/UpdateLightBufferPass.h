@@ -26,6 +26,7 @@ public:
 private:
     TArray<ULightComponent*> VisiblePointLights;
     TArray<ULightComponent*> Lights;
+    TArray<ULightComponent*> DirectionalLights;
 
     FDXDBufferManager* BufferManager;
     FGraphicsDevice* Graphics;

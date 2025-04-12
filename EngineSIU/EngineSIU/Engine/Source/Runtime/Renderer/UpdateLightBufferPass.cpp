@@ -6,6 +6,7 @@
 #include "D3D11RHI/GraphicDevice.h"
 #include "D3D11RHI/DXDShaderManager.h"
 #include "Components/Light/LightComponent.h"
+#include "Components/Light/DirLightComponent.h"
 #include "Engine/EditorEngine.h"
 #include "GameFramework/Actor.h"
 #include "UObject/UObjectIterator.h"
@@ -54,7 +55,15 @@ void FUpdateLightBufferPass::PrepareRender()
     {
         if (iter->GetWorld() == GEngine->ActiveWorld)
         {
-            Lights.Add(iter);
+            if (UDirLightComponent* dirLight = Cast<UDirLightComponent>(iter))
+            {
+                DirectionalLights.Add(dirLight);
+            }
+            else
+            {
+                Lights.Add(iter);
+            }
+          
         }
     }
 }
@@ -73,6 +82,7 @@ void FUpdateLightBufferPass::Render(const std::shared_ptr<FEditorViewportClient>
         // 광원의 유효 범위
         float LightRange = Light->GetAttenuationRadius();
 
+       
         if (FFrustrum::Get().IntersectsSphere(LightPos, LightRange))
         {   
             VisiblePointLights.Add(Light);
@@ -80,12 +90,11 @@ void FUpdateLightBufferPass::Render(const std::shared_ptr<FEditorViewportClient>
 
     }
 
-
     SortLightsByDistance(VisiblePointLights, Viewport->ViewTransformPerspective.GetLocation());
 
     for (auto Light : VisiblePointLights)
     {
-        if (LightCount == MAX_LIGHTS)
+        if (LightCount == MAX_LIGHTS - DirectionalLights.Len())
         {
             break;
         }
@@ -93,6 +102,12 @@ void FUpdateLightBufferPass::Render(const std::shared_ptr<FEditorViewportClient>
         LightBufferData.gLights[LightCount] = Light->GetLightInfo();
         LightCount++;
     }
+
+    for (int i = 0; i < DirectionalLights.Num(); i++)
+    {
+        LightBufferData.gLights[LightCount++] = DirectionalLights[i]->GetLightInfo();
+    }
+
     LightBufferData.nLights = LightCount;
     BufferManager->UpdateConstantBuffer(TEXT("FLightBuffer"), LightBufferData);
 }
@@ -100,6 +115,7 @@ void FUpdateLightBufferPass::Render(const std::shared_ptr<FEditorViewportClient>
 void FUpdateLightBufferPass::ClearRenderArr()
 {
     VisiblePointLights.Empty();
+    DirectionalLights.Empty();
     Lights.Empty();
 }
 
