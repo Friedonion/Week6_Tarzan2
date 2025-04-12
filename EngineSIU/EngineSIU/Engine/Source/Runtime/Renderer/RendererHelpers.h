@@ -22,6 +22,7 @@ namespace MaterialUtils {
         data.SpecularColor = MaterialInfo.Specular;
         data.SpecularScalar = MaterialInfo.SpecularScalar;
         data.EmmisiveColor = MaterialInfo.Emissive;
+        data.TextureInfo = MaterialInfo.TextureInfo;
 
         BufferManager->UpdateConstantBuffer(TEXT("FMaterialConstants"), data);
 

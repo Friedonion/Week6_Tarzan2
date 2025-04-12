@@ -312,6 +312,7 @@ bool FLoaderOBJ::ParseMaterial(FObjInfo& OutObjInfo, OBJ::FStaticMeshRenderData&
             OutFStaticMesh.Materials[MaterialIndex].bHasTexture = true;
 
             CreateTextureFromFile(OutFStaticMesh.Materials[MaterialIndex].DiffuseTexturePath);
+            OutFStaticMesh.Materials[MaterialIndex].TextureInfo |= ETextureType::TEXTURE_Diffuse;
         }
         if (Token == "map_Bump")
         {
@@ -336,6 +337,7 @@ bool FLoaderOBJ::ParseMaterial(FObjInfo& OutObjInfo, OBJ::FStaticMeshRenderData&
             OutFStaticMesh.Materials[MaterialIndex].BumpTexturePath = TexturePath;
             OutFStaticMesh.Materials[MaterialIndex].bHasTexture = true;
             CreateTextureFromFile(OutFStaticMesh.Materials[MaterialIndex].BumpTexturePath);
+            OutFStaticMesh.Materials[MaterialIndex].TextureInfo |= ETextureType::TEXTURE_Bump;
         }
     }
 
@@ -345,11 +347,20 @@ bool FLoaderOBJ::ParseMaterial(FObjInfo& OutObjInfo, OBJ::FStaticMeshRenderData&
 bool FLoaderOBJ::ConvertToStaticMesh(const FObjInfo& RawData, OBJ::FStaticMeshRenderData& OutStaticMesh)
 {
     OutStaticMesh.ObjectName = RawData.ObjectName;
-    //OutStaticMesh.PathName = RawData.PathName;
     OutStaticMesh.DisplayName = RawData.DisplayName;
 
-    // 고유 정점을 기반으로 FVertexSimple 배열 생성
-    TMap<std::string, uint32> IndexMap; // 중복 체크용
+    bool bHasNormalMap = false;
+
+    for (const auto& Mat : OutStaticMesh.Materials)
+    {
+        if ((Mat.TextureInfo & ETextureType::TEXTURE_Bump) != 0)
+        {
+            bHasNormalMap = true;
+            break;
+        }
+    }
+
+    TMap<std::string, uint32> IndexMap;
 
     for (int32 i = 0; i < RawData.VertexIndices.Num(); i++)
     {
@@ -357,72 +368,83 @@ bool FLoaderOBJ::ConvertToStaticMesh(const FObjInfo& RawData, OBJ::FStaticMeshRe
         const uint32 UVIndex = RawData.UVIndices[i];
         const uint32 NormalIndex = RawData.NormalIndices[i];
 
-        // 키 생성 (v/vt/vn 조합)
-        std::string Key = std::to_string(VertexIndex) + "/" + std::to_string(UVIndex) + "/" + std::to_string(NormalIndex);
+        FStaticMeshVertex StaticMeshVertex = {};
+        StaticMeshVertex.X = RawData.Vertices[VertexIndex].X;
+        StaticMeshVertex.Y = RawData.Vertices[VertexIndex].Y;
+        StaticMeshVertex.Z = RawData.Vertices[VertexIndex].Z;
+
+        StaticMeshVertex.R = 0.0f;
+        StaticMeshVertex.G = 0.0f;
+        StaticMeshVertex.B = 0.0f;
+        StaticMeshVertex.A = 1.0f;
+
+        if (UVIndex != UINT32_MAX && UVIndex < RawData.UVs.Num())
+        {
+            StaticMeshVertex.U = RawData.UVs[UVIndex].X;
+            StaticMeshVertex.V = RawData.UVs[UVIndex].Y;
+        }
+
+        if (NormalIndex != UINT32_MAX && NormalIndex < RawData.Normals.Num())
+        {
+            StaticMeshVertex.NormalX = RawData.Normals[NormalIndex].X;
+            StaticMeshVertex.NormalY = RawData.Normals[NormalIndex].Y;
+            StaticMeshVertex.NormalZ = RawData.Normals[NormalIndex].Z;
+        }
+
+        for (int32 j = 0; j < OutStaticMesh.MaterialSubsets.Num(); j++)
+        {
+            const FMaterialSubset& Subset = OutStaticMesh.MaterialSubsets[j];
+            if (i >= Subset.IndexStart && i < Subset.IndexStart + Subset.IndexCount)
+            {
+                StaticMeshVertex.MaterialIndex = Subset.MaterialIndex;
+                break;
+            }
+        }
 
         uint32 FinalIndex;
-        if (IndexMap.Contains(Key))
+
+        if (bHasNormalMap)
         {
-            FinalIndex = IndexMap[Key];
+            // 병합 X
+            FinalIndex = OutStaticMesh.Vertices.Num();
+            OutStaticMesh.Vertices.Add(StaticMeshVertex);
         }
         else
         {
-            FStaticMeshVertex StaticMeshVertex = {};
-            StaticMeshVertex.X = RawData.Vertices[VertexIndex].X;
-            StaticMeshVertex.Y = RawData.Vertices[VertexIndex].Y;
-            StaticMeshVertex.Z = RawData.Vertices[VertexIndex].Z;
-
-            StaticMeshVertex.R = 0.0f; StaticMeshVertex.G = 0.0f; StaticMeshVertex.B = 0.0f; StaticMeshVertex.A = 1.0f; // 기본 색상
-
-            if (UVIndex != UINT32_MAX && UVIndex < RawData.UVs.Num())
+            // 병합 O
+            std::string Key = std::to_string(VertexIndex) + "/" + std::to_string(UVIndex) + "/" + std::to_string(NormalIndex);
+            if (IndexMap.Contains(Key))
             {
-                StaticMeshVertex.U = RawData.UVs[UVIndex].X;
-                StaticMeshVertex.V = RawData.UVs[UVIndex].Y;
+                FinalIndex = IndexMap[Key];
             }
-
-            if (NormalIndex != UINT32_MAX && NormalIndex < RawData.Normals.Num())
+            else
             {
-                StaticMeshVertex.NormalX = RawData.Normals[NormalIndex].X;
-                StaticMeshVertex.NormalY = RawData.Normals[NormalIndex].Y;
-                StaticMeshVertex.NormalZ = RawData.Normals[NormalIndex].Z;
+                FinalIndex = OutStaticMesh.Vertices.Num();
+                OutStaticMesh.Vertices.Add(StaticMeshVertex);
+                IndexMap[Key] = FinalIndex;
             }
-
-            if (i % 3 == 2) // 삼각형이 구성되면 Tangent 계산
-            {
-                const uint32 IndexNum = OutStaticMesh.Indices.Num();
-
-                FStaticMeshVertex& Vertex0 = OutStaticMesh.Vertices[OutStaticMesh.Indices[IndexNum - 2]];
-                FStaticMeshVertex& Vertex1 = OutStaticMesh.Vertices[OutStaticMesh.Indices[IndexNum - 1]];
-                FStaticMeshVertex& Vertex2 = StaticMeshVertex;
-
-                CalculateTangent(Vertex0, Vertex1, Vertex2);
-                CalculateTangent(Vertex1, Vertex2, Vertex0);
-                CalculateTangent(Vertex2, Vertex0, Vertex1);
-            }
-
-            for (int32 j = 0; j < OutStaticMesh.MaterialSubsets.Num(); j++)
-            {
-                const FMaterialSubset& Subset = OutStaticMesh.MaterialSubsets[j];
-                if ( i >= Subset.IndexStart && i < Subset.IndexStart + Subset.IndexCount)
-                {
-                    StaticMeshVertex.MaterialIndex = Subset.MaterialIndex;
-                    break;
-                }
-            }
-
-            FinalIndex = OutStaticMesh.Vertices.Num();
-            OutStaticMesh.Vertices.Add(StaticMeshVertex);
-            IndexMap[Key] = FinalIndex;
         }
 
         OutStaticMesh.Indices.Add(FinalIndex);
+
+        // Tangent 계산은 항상 필요
+        if (i % 3 == 2)
+        {
+            uint32 IndexNum = OutStaticMesh.Indices.Num();
+            FStaticMeshVertex& V0 = OutStaticMesh.Vertices[OutStaticMesh.Indices[IndexNum - 3]];
+            FStaticMeshVertex& V1 = OutStaticMesh.Vertices[OutStaticMesh.Indices[IndexNum - 2]];
+            FStaticMeshVertex& V2 = OutStaticMesh.Vertices[OutStaticMesh.Indices[IndexNum - 1]];
+
+            CalculateTangent(V0, V1, V2);
+            CalculateTangent(V1, V2, V0);
+            CalculateTangent(V2, V0, V1);
+        }
     }
 
-    // Calculate StaticMesh BoundingBox
     ComputeBoundingBox(OutStaticMesh.Vertices, OutStaticMesh.BoundingBoxMin, OutStaticMesh.BoundingBoxMax);
-
     return true;
 }
+
 
 bool FLoaderOBJ::CreateTextureFromFile(const FWString& Filename)
 {

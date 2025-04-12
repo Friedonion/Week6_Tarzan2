@@ -33,7 +33,7 @@ struct FMaterial
     float SpecularScalar;
     
     float3 EmissiveColor;
-    float MaterialPad0;
+    int TextureInfo; // 0b0001: Diffuse, 0b0010: Ambient, 0b0100: Specular, 0b1000: Bump
 };
 cbuffer MaterialConstants : register(b3)
 {
@@ -100,10 +100,13 @@ PS_OUTPUT mainPS(PS_INPUT input)
     float3 matDiffuse = Material.DiffuseColor.rgb;
     bool hasTexture = any(albedo != float3(0, 0, 0));
     float3 baseColor = hasTexture ? albedo : matDiffuse;
+    
+    bool HasDiffuseTexture = (Material.TextureInfo & 0x1) != 0;
+    bool HasBumpTexture = (Material.TextureInfo & 0x8) != 0;
 
     float3 normalWS = input.TBN[2].xyz;
 
-    if (input.normalFlag > 0.5f) // 노말맵이 유효한 경우
+    if (HasBumpTexture) // 노말맵이 유효한 경우
     {
         normalWS = GetNormalFromMap(input);
     }
