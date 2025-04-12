@@ -34,6 +34,8 @@ void SLevelEditor::Initialize()
     HSplitter->OnDrag(FPoint(0, 0));
     LoadConfig();
     bInitialize = true;
+    // level 시작될 때 viewmode load에 따른 렌더링 모드 변경
+    FEngineLoop::Renderer.ChangeViewMode(ActiveViewportClient->GetViewMode());
 }
 
 void SLevelEditor::Tick(double deltaTime)

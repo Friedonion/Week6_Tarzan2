@@ -22,7 +22,6 @@
 
 #include "UnrealEd/EditorViewportClient.h"
 
-
 FStaticMeshRenderPass::FStaticMeshRenderPass()
     : VertexShader(nullptr)
     , PixelShader(nullptr)
@@ -80,12 +79,34 @@ void FStaticMeshRenderPass::ReleaseShader()
     FDXDBufferManager::SafeRelease(VertexShader);
 }
 
-void FStaticMeshRenderPass::ChangeViewMode(EViewModeIndex evi) const
+void FStaticMeshRenderPass::ChangeViewMode(EViewModeIndex evi)
 {
+    D3D_SHADER_MACRO Defines[2];
     switch (evi)
     {
-    case EViewModeIndex::VMI_Lit:
+    case EViewModeIndex::VMI_Lit_Gouraud:
         UpdateLitUnlitConstant(1);
+        FDXDBufferManager::SafeRelease(PixelShader);
+        Defines[0] = { "LIGHTING_MODEL_GOURAUD", "1" };
+        Defines[1] = { nullptr, nullptr };
+        ShaderManager->AddPixelShader(L"StaticMeshPixelShader", L"Shaders/StaticMeshPixelShader.hlsl", "mainPS", Defines);
+        PixelShader = ShaderManager->GetPixelShaderByKey(L"StaticMeshPixelShader");
+        break;
+    case EViewModeIndex::VMI_Lit_Lambert:
+        UpdateLitUnlitConstant(1);
+        FDXDBufferManager::SafeRelease(PixelShader);
+        Defines[0] = { "LIGHTING_MODEL_LAMBERT", "1" };
+        Defines[1] = { nullptr, nullptr };
+        ShaderManager->AddPixelShader(L"StaticMeshPixelShader", L"Shaders/StaticMeshPixelShader.hlsl", "mainPS", Defines);
+        PixelShader = ShaderManager->GetPixelShaderByKey(L"StaticMeshPixelShader");
+        break;
+    case EViewModeIndex::VMI_Lit_BlinnPhong:
+        UpdateLitUnlitConstant(1);
+        FDXDBufferManager::SafeRelease(PixelShader);
+        Defines[0] = { "LIGHTING_MODEL_BLINNPHONG", "1" };
+        Defines[1] = { nullptr, nullptr };
+        ShaderManager->AddPixelShader(L"StaticMeshPixelShader", L"Shaders/StaticMeshPixelShader.hlsl", "mainPS", Defines);
+        PixelShader = ShaderManager->GetPixelShaderByKey(L"StaticMeshPixelShader");
         break;
     case EViewModeIndex::VMI_Wireframe:
     case EViewModeIndex::VMI_Unlit:
@@ -144,7 +165,6 @@ void FStaticMeshRenderPass::UpdatePerObjectConstant(const FMatrix& Model, const 
     FMatrix NormalMatrix = RendererHelpers::CalculateNormalMatrix(Model);
     FPerObjectConstantBuffer Data(Model, NormalMatrix, UUIDColor, Selected);
     BufferManager->UpdateConstantBuffer(TEXT("FPerObjectConstantBuffer"), Data);
-   
 }
 
 void FStaticMeshRenderPass::UpdateLitUnlitConstant(int isLit) const

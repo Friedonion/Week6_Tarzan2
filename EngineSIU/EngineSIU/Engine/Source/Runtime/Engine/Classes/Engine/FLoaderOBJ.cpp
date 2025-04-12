@@ -225,6 +225,7 @@ bool FLoaderOBJ::ParseMaterial(FObjInfo& OutObjInfo, OBJ::FStaticMeshRenderData&
     std::string Line;
     int32 MaterialIndex = -1;
 
+
     while (std::getline(MtlFile, Line))
     {
         if (Line.empty() || Line[0] == '#')
@@ -245,12 +246,15 @@ bool FLoaderOBJ::ParseMaterial(FObjInfo& OutObjInfo, OBJ::FStaticMeshRenderData&
             OutFStaticMesh.Materials.Add(Material);
         }
 
+       
         if (Token == "Kd")
         {
             float x, y, z;
             LineStream >> x >> y >> z;
+
             OutFStaticMesh.Materials[MaterialIndex].Diffuse = FVector(x, y, z);
         }
+
 
         if (Token == "Ks")
         {
