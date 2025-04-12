@@ -72,25 +72,16 @@ void FUpdateLightBufferPass::Render(const std::shared_ptr<FEditorViewportClient>
     FLightBuffer LightBufferData = {};
     int LightCount = 0;
 
-    FFrustrum Frustrum;
-    FMatrix ViewProjMatrix = Viewport->GetViewMatrix() * Viewport->GetProjectionMatrix();
-    Frustrum.MaekFrustrum(ViewProjMatrix);
-  
 
     LightBufferData.GlobalAmbientLight = FVector4(0.1f, 0.1f, 0.1f, 1.f);
     for (auto Light : PointLights)
     {
-        //if (LightCount == MAX_LIGHTS) 
-        //{
-        //    break;
-        //}
-
         FVector LightPos = Light->GetWorldLocation();
 
         // 광원의 유효 범위
         float LightRange = Light->GetAttenuationRadius();
 
-        if (Frustrum.IntersectsSphere(LightPos, LightRange))
+        if (FFrustrum::Get().IntersectsSphere(LightPos, LightRange))
         {   
             VisiblePointLights.Add(Light);
         }

@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include <cassert>
 #include "MathUtility.h"
 #include "Serialization/Archive.h"
@@ -106,6 +106,7 @@ public:
     static inline FVector UnitZ() { return ZAxisVector; }
 
     static float Distance(const FVector& V1, const FVector& V2);
+    static float DistSquared(const FVector& V1, const FVector& V2);
 
     /** Dot Product */
     float operator|(const FVector& Other) const;
@@ -171,6 +172,14 @@ inline float FVector::Distance(const FVector& V1, const FVector& V2)
         + FMath::Square(V2.Y - V1.Y)
         + FMath::Square(V2.Z - V1.Z)
     );
+}
+
+inline float FVector::DistSquared(const FVector& V1, const FVector& V2)
+{
+    float DX = V2.X - V1.X;
+    float DY = V2.Y - V1.Y;
+    float DZ = V2.Z - V1.Z;
+    return DX * DX + DY * DY + DZ * DZ;
 }
 
 inline float FVector::operator|(const FVector& Other) const

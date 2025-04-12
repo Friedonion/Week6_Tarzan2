@@ -5,7 +5,7 @@ float FFrustrum::FPlane::GetSignedDistance(const FVector& Point) const
     return FVector::DotProduct(Normal, Point) + Distance;
 }
 
-void FFrustrum::MaekFrustrum(const FMatrix& ViewProj)
+void FFrustrum::UpdateFrustrum(const FMatrix& ViewProj)
 {
     ViewProj.Transpose(ViewProj);
 

@@ -21,6 +21,8 @@
 
 #include "World/World.h"
 
+#include <FFrustrum.h>
+
 FBillboardRenderPass::FBillboardRenderPass()
     : BufferManager(nullptr)
     , Graphics(nullptr)
@@ -151,6 +153,11 @@ void FBillboardRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& 
     // 각 Billboard에 대해 렌더링 처리
     for (auto BillboardComp : BillboardObjs)
     {
+        if (!FFrustrum::Get().ContainsPoint(BillboardComp->GetWorldLocation()))
+        {
+            continue;
+        }
+
         FMatrix Model = BillboardComp->CreateBillboardMatrix();
         FVector4 UUIDColor = BillboardComp->EncodeUUID() / 255.0f;
 

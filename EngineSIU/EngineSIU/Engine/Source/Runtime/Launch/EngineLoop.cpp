@@ -155,12 +155,6 @@ void FEngineLoop::Render() const
         for (int i = 0; i < 4; ++i)
         {
             LevelEditor->SetViewportClient(i);
-            // graphicDevice.DeviceContext->RSSetViewports(1, &LevelEditor->GetViewports()[i]->GetD3DViewport());
-            // graphicDevice.ChangeRasterizer(LevelEditor->GetActiveViewportClient()->GetViewMode());
-            // renderer.ChangeViewMode(LevelEditor->GetActiveViewportClient()->GetViewMode());
-            // renderer.PrepareShader();
-            // renderer.UpdateLightBuffer();
-            // RenderWorld();
             Renderer.PrepareRender();
             Renderer.Render(LevelEditor->GetActiveViewportClient());
         }
@@ -168,12 +162,6 @@ void FEngineLoop::Render() const
     }
     else
     {
-        // graphicDevice.DeviceContext->RSSetViewports(1, &LevelEditor->GetActiveViewportClient()->GetD3DViewport());
-        // graphicDevice.ChangeRasterizer(LevelEditor->GetActiveViewportClient()->GetViewMode());
-        // renderer.ChangeViewMode(LevelEditor->GetActiveViewportClient()->GetViewMode());
-        // renderer.PrepareShader();
-        // renderer.UpdateLightBuffer();
-        // RenderWorld();
         Renderer.PrepareRender();
         Renderer.Render(LevelEditor->GetActiveViewportClient());
     }
