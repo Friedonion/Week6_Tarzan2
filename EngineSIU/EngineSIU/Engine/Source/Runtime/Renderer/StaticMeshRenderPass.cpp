@@ -100,6 +100,14 @@ void FStaticMeshRenderPass::ChangeViewMode(EViewModeIndex evi)
         ShaderManager->AddPixelShader(L"StaticMeshPixelShader", L"Shaders/StaticMeshPixelShader.hlsl", "mainPS", Defines);
         PixelShader = ShaderManager->GetPixelShaderByKey(L"StaticMeshPixelShader");
         break;
+    case EViewModeIndex::VMI_Lit_Specular:
+        UpdateLitUnlitConstant(1);
+        FDXDBufferManager::SafeRelease(PixelShader);
+        Defines[0] = { "LIGHTING_MODEL_SPECULAR", "1" };
+        Defines[1] = { nullptr, nullptr };
+        ShaderManager->AddPixelShader(L"StaticMeshPixelShader", L"Shaders/StaticMeshPixelShader.hlsl", "mainPS", Defines);
+        PixelShader = ShaderManager->GetPixelShaderByKey(L"StaticMeshPixelShader");
+        break;
     case EViewModeIndex::VMI_Lit_BlinnPhong:
         UpdateLitUnlitConstant(1);
         FDXDBufferManager::SafeRelease(PixelShader);
