@@ -288,18 +288,18 @@ struct FLight
     float pad1;
 
     FVector SpecularColor;
-    float pad2;
+    float InnerDegree;
 
     FVector Position;
-    float Falloff;
+    float OuterDegree;
 
     FVector Direction;
     float pad3;
 
-    float Attenuation = 20.f;
+    float Attenuation = 1.f;
     int   Enabled;
     int   Type;
-    float Intensity = 1000.f;    // m_fIntensity: 광원 강도
+    float Intensity = 1.f;    // m_fIntensity: 광원 강도
     float AttRadius = 10.f;    // m_fAttRadius: 감쇠 반경
     FVector LightPad;
 };

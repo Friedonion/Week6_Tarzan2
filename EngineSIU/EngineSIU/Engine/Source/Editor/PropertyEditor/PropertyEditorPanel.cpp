@@ -123,7 +123,7 @@ void PropertyEditorPanel::Render()
                     [&](FLinearColor c) { lightObj->SetSpecularColor(c); });
 
                 float Intensity = lightObj->GetIntensity();
-                if (ImGui::SliderFloat("Intensity", &Intensity, 0.0f, 10000.0f, "%1.f"))
+                if (ImGui::SliderFloat("Intensity", &Intensity, 0.0f, 10.0f, "%.1f"))
                     lightObj->SetIntensity(Intensity);
 
                  /*  
@@ -136,7 +136,7 @@ void PropertyEditorPanel::Render()
                 */
 
                 float attenuation = lightObj->GetAttenuation();
-                if (ImGui::SliderFloat("Attenuation", &attenuation, 0.01f, 100.f, "%.1f")) {
+                if (ImGui::SliderFloat("Attenuation", &attenuation, 0.01f, 10.f, "%.1f")) {
                     lightObj->SetAttenuation(attenuation);
                 }
 
@@ -145,6 +145,17 @@ void PropertyEditorPanel::Render()
                     lightObj->SetAttenuationRadius(AttenuationRadius);
                 }
 
+                float InnerAngle = lightObj->GetInnerAngle();
+                if (ImGui::SliderFloat("InnerAngle", &InnerAngle, 0.01f, 90.0f, "%.1f"))
+                {
+                    lightObj->SetInnerAngle(InnerAngle);
+                }
+
+                float OuterAngle = lightObj->GetOuterAngle();
+                if (ImGui::SliderFloat("OuterAngle", &OuterAngle, 0.01f, 90.0f, "%.1f"))
+                {
+                    lightObj->SetOuterAngle(OuterAngle);
+                }
                 ImGui::TreePop();
             }
 
