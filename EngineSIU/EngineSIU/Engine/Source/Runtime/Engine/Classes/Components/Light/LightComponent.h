@@ -25,6 +25,11 @@ public:
     FLinearColor GetSpecularColor();
     float GetAttenuation();
     float GetAttenuationRadius();
+    
+    float GetInnerAngle();
+    void SetInnerAngle(float angle);
+    float GetOuterAngle();
+    void SetOuterAngle(float angle);
     FLight GetLightInfo();
 protected:
 
@@ -37,3 +42,23 @@ public:
     float GetIntensity() const {return Light.Intensity;}
     
 };
+
+inline float ULightComponent::GetInnerAngle()
+{
+    return Light.InnerDegree;
+}
+
+inline void ULightComponent::SetInnerAngle(float angle)
+{
+    Light.InnerDegree = angle;
+}
+
+inline float ULightComponent::GetOuterAngle()
+{
+    return Light.OuterDegree;
+}
+
+inline void ULightComponent::SetOuterAngle(float angle)
+{
+    Light.OuterDegree = angle;
+}

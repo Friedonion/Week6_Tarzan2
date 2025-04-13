@@ -169,7 +169,7 @@ float4 CalculateDirLight(int nIndex, float3 vPosition, float3 vNormal)
         gLights[nIndex].m_cSpecular.rgb * BlinnPhongLightingModel(vToLight, vPosition, vNormal, Material.SpecularScalar) * Material.SpecularColor;
 #endif
     
-    return float4(lit, 1.0);
+    return float4(lit * gLights[nIndex].m_fIntensity, 1.0);
 }
 
 float4 CalculatePointLight(int nIndex, float3 vPosition, float3 vNormal)

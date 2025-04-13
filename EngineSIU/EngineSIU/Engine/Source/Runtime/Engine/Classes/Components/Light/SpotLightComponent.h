@@ -11,8 +11,7 @@ public:
     FVector GetDirection();
     void SetDirection(const FVector& dir);
 
-private:
-    float InnerConeAngle;
-    float OuterConeAngle;
+
+
 };
 
