@@ -432,7 +432,7 @@ bool FLoaderOBJ::ConvertToStaticMesh(const FObjInfo& RawData, OBJ::FStaticMeshRe
         OutStaticMesh.Indices.Add(FinalIndex);
 
         // Tangent 계산은 항상 필요
-        if (i % 3 == 2)
+        if (bHasNormalMap && i % 3 == 2)
         {
             uint32 IndexNum = OutStaticMesh.Indices.Num();
             FStaticMeshVertex& V0 = OutStaticMesh.Vertices[OutStaticMesh.Indices[IndexNum - 3]];
@@ -493,13 +493,26 @@ void FLoaderOBJ::CalculateTangent(FStaticMeshVertex& PivotVertex, const FStaticM
     const float t1 = Vertex1.V - PivotVertex.V;
     const float s2 = Vertex2.U - PivotVertex.U;
     const float t2 = Vertex2.V - PivotVertex.V;
+
     const float E1x = Vertex1.X - PivotVertex.X;
     const float E1y = Vertex1.Y - PivotVertex.Y;
     const float E1z = Vertex1.Z - PivotVertex.Z;
     const float E2x = Vertex2.X - PivotVertex.X;
     const float E2y = Vertex2.Y - PivotVertex.Y;
     const float E2z = Vertex2.Z - PivotVertex.Z;
-    const float f = 1.f / (s1 * t2 - s2 * t1);
+
+    const float denom = (s1 * t2 - s2 * t1);
+
+    if (fabs(denom) < 1e-6f)
+    {
+        // UV가 너무 비슷해서 Tangent 계산이 불가능함 → 기본 방향 사용 or 스킵
+        PivotVertex.TangentX = 1.0f;
+        PivotVertex.TangentY = 0.0f;
+        PivotVertex.TangentZ = 0.0f;
+        return;
+    }
+
+    const float f = 1.0f / denom;
     const float Tx = f * (t2 * E1x - t1 * E2x);
     const float Ty = f * (t2 * E1y - t1 * E2y);
     const float Tz = f * (t2 * E1z - t1 * E2z);
@@ -510,6 +523,7 @@ void FLoaderOBJ::CalculateTangent(FStaticMeshVertex& PivotVertex, const FStaticM
     PivotVertex.TangentY = Tangent.Y;
     PivotVertex.TangentZ = Tangent.Z;
 }
+
 
 OBJ::FStaticMeshRenderData* FManagerOBJ::LoadObjStaticMeshAsset(const FString& PathFileName)
 {
