@@ -15,10 +15,10 @@ struct LIGHT
     float pad3;
 
     float3 m_vPosition; // position of light (used in point, spot)
-    float m_fInnerDegree; // spot light inner radius in degree
+    float m_fInnerDegree; // spotlight inner radius in degree
 
     float3 m_vDirection;    // direction (used in directional, spot)
-    float m_fOuterDegree; // spot light outer radius in degree
+    float m_fOuterDegree; // spotlight outer radius in degree
 
     float m_fAttenuation; // 거리 기반 감쇠 계수
     int m_bEnable;
@@ -135,11 +135,12 @@ float LambertLightingModel(float3 vToLight, float3 vNormal)
     return saturate(dot(vNormal, vToLight));
 }
 
-float BlinnPhongLightingModel(float3 vToLight, float3 vPosition, float3 vNormal)
+float BlinnPhongLightingModel(float3 vToLight, float3 vPosition, float3 vNormal, float fSpecularScalar)
 {
     float3 vView = normalize(CameraPosition - vPosition);
     float3 vHalf = normalize(vToLight + vView);
-    return pow(max(dot(normalize(vNormal), vHalf), 0.0f), 1);
+    return pow(dot(normalize(vNormal), vHalf), fSpecularScalar);   
+    // return pow(max(dot(normalize(vNormal), vHalf), 0.0f), 1);    // max(dot(normalize(vNormal), vHalf), 0.0f) 는 적절하지 않다.
 }
 
 float4 CalculateDirLight(int nIndex, float3 vPosition, float3 vNormal)
@@ -147,11 +148,11 @@ float4 CalculateDirLight(int nIndex, float3 vPosition, float3 vNormal)
     float3 vToLight = normalize(-gLights[nIndex].m_vDirection);
     float3 vView = normalize(CameraPosition - vPosition);
     
-    if (dot(vNormal, vToLight) < 0.0f)
-        return float4(0.0f, 0.0f, 0.0f, 1.0f);
-    
     float3 ambientLight = gcGlobalAmbientLight * Material.AmbientColor.rgb;
-    float3 lit;
+    float3 lit = ambientLight;
+    
+    if (dot(vNormal, vToLight) < 0.0f)
+        return float4(lit, 1.0f);
 
 #if LIGHTING_MODEL_GOURAUD
     lit = 0.0f;
@@ -160,7 +161,7 @@ float4 CalculateDirLight(int nIndex, float3 vPosition, float3 vNormal)
     float3 safeDiffuse = (length(Material.DiffuseColor) < 0.001f)  ? float3(1,1,1)  : Material.DiffuseColor;
     lit = ambientLight + gLights[nIndex].m_cDiffuse.rgb * LambertLightingModel(vToLight, vNormal) * safeDiffuse;
 #elif LIGHTING_MODEL_BLINNPHONG
-    lit = ambientLight + gLights[nIndex].m_cSpecular.rgb * BlinnPhongLightingModel(vToLight, vPosition, vNormal) * Material.SpecularColor;
+    lit = ambientLight + gLights[nIndex].m_cSpecular.rgb * BlinnPhongLightingModel(vToLight, vPosition, vNormal, Material.SpecularScalar) * Material.SpecularColor;
 #endif
     
     return float4(lit, 1.0);
@@ -189,7 +190,7 @@ float4 CalculatePointLight(int nIndex, float3 vPosition, float3 vNormal)
     float3 safeDiffuse = (length(Material.DiffuseColor) < 0.001f)  ? float3(1,1,1)  : Material.DiffuseColor;
     lit = ambientLight + gLights[nIndex].m_cDiffuse.rgb * LambertLightingModel(vToLight, vNormal) * safeDiffuse;
 #elif LIGHTING_MODEL_BLINNPHONG
-    lit = ambientLight + gLights[nIndex].m_cSpecular.rgb * BlinnPhongLightingModel(vToLight, vPosition, vNormal) * Material.SpecularColor;
+    lit = ambientLight + gLights[nIndex].m_cSpecular.rgb * BlinnPhongLightingModel(vToLight, vPosition, vNormal, Material.SpecularScalar) * Material.SpecularColor;
 #endif
 
     float normalizedRadius = fDistance / gLights[nIndex].m_fAttRadius;
@@ -217,7 +218,7 @@ float4 CalculateSpotLight(int nIndex, float3 vPosition, float3 vNormal)
     float fCosOuter = cos(radians(gLights[nIndex].m_fOuterDegree));
     float3 lit;
     float3 ambientLight = gcGlobalAmbientLight * Material.AmbientColor.rgb;
-    
+
 #if LIGHTING_MODEL_GOURAUD
     lit = 0.0f;
 #elif LIGHTING_MODEL_LAMBERT
@@ -225,7 +226,7 @@ float4 CalculateSpotLight(int nIndex, float3 vPosition, float3 vNormal)
     float3 safeDiffuse = (length(Material.DiffuseColor) < 0.001f)  ? float3(1,1,1)  : Material.DiffuseColor;
     lit = ambientLight + gLights[nIndex].m_cDiffuse.rgb * LambertLightingModel(vToLight, vNormal) * safeDiffuse;
 #elif LIGHTING_MODEL_BLINNPHONG
-    lit = ambientLight + gLights[nIndex].m_cSpecular.rgb * BlinnPhongLightingModel(vToLight, vPosition, vNormal) * Material.SpecularColor;
+    lit = ambientLight + gLights[nIndex].m_cSpecular.rgb * BlinnPhongLightingModel(vToLight, vPosition, vNormal, Material.SpecularScalar) * Material.SpecularColor;
 #endif
     
     float normalizedRadius = fDistance / gLights[nIndex].m_fAttRadius;
