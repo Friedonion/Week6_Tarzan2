@@ -348,10 +348,6 @@ struct FSubUVConstant
     FVector2D uvOffset;
     FVector2D uvScale;
 };
-struct FLitUnlitConstants {
-    int isLit; // 1 = Lit, 0 = Unlit 
-    FVector pad;
-};
 
 struct FSubMeshConstants {
     float isSelectedSubMesh;

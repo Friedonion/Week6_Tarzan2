@@ -35,8 +35,6 @@ public:
     void PrepareRenderState() const;
     
     void UpdatePerObjectConstant(const FMatrix& Model, const FMatrix& View, const FMatrix& Projection, const FVector4& UUIDColor, bool Selected) const;
-  
-    void UpdateLitUnlitConstant(int isLit) const;
 
     void RenderPrimitive(OBJ::FStaticMeshRenderData* RenderData, TArray<FStaticMaterial*> Materials, TArray<UMaterial*> OverrideMaterials, int SelectedSubMeshIndex) const;
     

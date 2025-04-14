@@ -62,15 +62,26 @@ void FStaticMeshRenderPass::CreateShader()
     Stride = sizeof(FStaticMeshVertex);
 
     HRESULT hr = ShaderManager->AddVertexShaderAndInputLayout(L"StaticMeshVertexShader", L"Shaders/StaticMeshVertexShader.hlsl", "mainVS", StaticMeshLayoutDesc, ARRAYSIZE(StaticMeshLayoutDesc));
-
-    hr = ShaderManager->AddPixelShader(L"StaticMeshPixelShader", L"Shaders/StaticMeshPixelShader.hlsl", "mainPS");
-
     VertexShader = ShaderManager->GetVertexShaderByKey(L"StaticMeshVertexShader");
-
-    PixelShader = ShaderManager->GetPixelShaderByKey(L"StaticMeshPixelShader");
-
     InputLayout = ShaderManager->GetInputLayoutByKey(L"StaticMeshVertexShader");
 
+    D3D_SHADER_MACRO Defines[2];
+    Defines[1] = { nullptr, nullptr };
+
+    Defines[0] = { "LIGHTING_MODEL_GOURAUD", "1" };
+    hr = ShaderManager->AddPixelShader(L"StaticMeshPixelShaderGouraud", L"Shaders/StaticMeshPixelShader.hlsl", "mainPS", Defines);
+
+    Defines[0] = { "LIGHTING_MODEL_LAMBERT", "1" };
+    hr = ShaderManager->AddPixelShader(L"StaticMeshPixelShaderLambert", L"Shaders/StaticMeshPixelShader.hlsl", "mainPS", Defines);
+
+    Defines[0] = { "LIGHTING_MODEL_SPECULAR", "1" };
+    hr = ShaderManager->AddPixelShader(L"StaticMeshPixelShaderSpecular", L"Shaders/StaticMeshPixelShader.hlsl", "mainPS", Defines);
+
+    Defines[0] = { "LIGHTING_MODEL_BLINNPHONG", "1" };
+    hr = ShaderManager->AddPixelShader(L"StaticMeshPixelShaderBlinnPhong", L"Shaders/StaticMeshPixelShader.hlsl", "mainPS", Defines);
+
+    Defines[0] = { "LIGHTING_MODEL_UNLIT", "1" };
+    hr = ShaderManager->AddPixelShader(L"StaticMeshPixelShaderUnlit", L"Shaders/StaticMeshPixelShader.hlsl", "mainPS", Defines);
 }
 void FStaticMeshRenderPass::ReleaseShader()
 {
@@ -85,36 +96,16 @@ void FStaticMeshRenderPass::ChangeViewMode(EViewModeIndex evi)
     switch (evi)
     {
     case EViewModeIndex::VMI_Lit_Gouraud:
-        UpdateLitUnlitConstant(1);
-        FDXDBufferManager::SafeRelease(PixelShader);
-        Defines[0] = { "LIGHTING_MODEL_GOURAUD", "1" };
-        Defines[1] = { nullptr, nullptr };
-        ShaderManager->AddPixelShader(L"StaticMeshPixelShader", L"Shaders/StaticMeshPixelShader.hlsl", "mainPS", Defines);
-        PixelShader = ShaderManager->GetPixelShaderByKey(L"StaticMeshPixelShader");
+        PixelShader = ShaderManager->GetPixelShaderByKey(L"StaticMeshPixelShaderGouraud");
         break;
     case EViewModeIndex::VMI_Lit_Lambert:
-        UpdateLitUnlitConstant(1);
-        FDXDBufferManager::SafeRelease(PixelShader);
-        Defines[0] = { "LIGHTING_MODEL_LAMBERT", "1" };
-        Defines[1] = { nullptr, nullptr };
-        ShaderManager->AddPixelShader(L"StaticMeshPixelShader", L"Shaders/StaticMeshPixelShader.hlsl", "mainPS", Defines);
-        PixelShader = ShaderManager->GetPixelShaderByKey(L"StaticMeshPixelShader");
+        PixelShader = ShaderManager->GetPixelShaderByKey(L"StaticMeshPixelShaderLambert");
         break;
     case EViewModeIndex::VMI_Lit_Specular:
-        UpdateLitUnlitConstant(1);
-        FDXDBufferManager::SafeRelease(PixelShader);
-        Defines[0] = { "LIGHTING_MODEL_SPECULAR", "1" };
-        Defines[1] = { nullptr, nullptr };
-        ShaderManager->AddPixelShader(L"StaticMeshPixelShader", L"Shaders/StaticMeshPixelShader.hlsl", "mainPS", Defines);
-        PixelShader = ShaderManager->GetPixelShaderByKey(L"StaticMeshPixelShader");
+        PixelShader = ShaderManager->GetPixelShaderByKey(L"StaticMeshPixelShaderSpecular");
         break;
     case EViewModeIndex::VMI_Lit_BlinnPhong:
-        UpdateLitUnlitConstant(1);
-        FDXDBufferManager::SafeRelease(PixelShader);
-        Defines[0] = { "LIGHTING_MODEL_BLINNPHONG", "1" };
-        Defines[1] = { nullptr, nullptr };
-        ShaderManager->AddPixelShader(L"StaticMeshPixelShader", L"Shaders/StaticMeshPixelShader.hlsl", "mainPS", Defines);
-        PixelShader = ShaderManager->GetPixelShaderByKey(L"StaticMeshPixelShader");
+        PixelShader = ShaderManager->GetPixelShaderByKey(L"StaticMeshPixelShaderBlinnPhong");
         break;
     case EViewModeIndex::VMI_Normal:
         UpdateLitUnlitConstant(1);
@@ -126,7 +117,7 @@ void FStaticMeshRenderPass::ChangeViewMode(EViewModeIndex evi)
         break;
     case EViewModeIndex::VMI_Wireframe:
     case EViewModeIndex::VMI_Unlit:
-        UpdateLitUnlitConstant(0);
+        PixelShader = ShaderManager->GetPixelShaderByKey(L"StaticMeshPixelShaderUnlit");
         break;
     }
 }
@@ -168,7 +159,6 @@ void FStaticMeshRenderPass::PrepareRenderState() const
                                   TEXT("FCameraConstantBuffer"),
                                   TEXT("FLightBuffer"),
                                   TEXT("FMaterialConstants"),
-                                  TEXT("FLitUnlitConstants"),
                                   TEXT("FSubMeshConstants"),
                                   TEXT("FTextureConstants")
     };
@@ -182,14 +172,6 @@ void FStaticMeshRenderPass::UpdatePerObjectConstant(const FMatrix& Model, const 
     FPerObjectConstantBuffer Data(Model, NormalMatrix, UUIDColor, Selected);
     BufferManager->UpdateConstantBuffer(TEXT("FPerObjectConstantBuffer"), Data);
 }
-
-void FStaticMeshRenderPass::UpdateLitUnlitConstant(int isLit) const
-{
-    FLitUnlitConstants Data;
-    Data.isLit = isLit;
-    BufferManager->UpdateConstantBuffer(TEXT("FLitUnlitConstants"), Data);
-}
-
 
 void FStaticMeshRenderPass::RenderPrimitive(OBJ::FStaticMeshRenderData* RenderData, TArray<FStaticMaterial*> Materials, TArray<UMaterial*> OverrideMaterials, int SelectedSubMeshIndex) const
 {
