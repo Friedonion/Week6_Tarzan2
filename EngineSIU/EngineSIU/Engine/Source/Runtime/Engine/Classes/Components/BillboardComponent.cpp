@@ -13,6 +13,17 @@ UBillboardComponent::UBillboardComponent()
     SetType(StaticClass()->GetName());
 }
 
+void UBillboardComponent::SetColor(FLinearColor Color)
+{
+    this->Color = Color;
+}
+
+
+FLinearColor UBillboardComponent::GetColor()
+{
+    return this->Color;
+}
+
 UBillboardComponent::~UBillboardComponent()
 {
 }

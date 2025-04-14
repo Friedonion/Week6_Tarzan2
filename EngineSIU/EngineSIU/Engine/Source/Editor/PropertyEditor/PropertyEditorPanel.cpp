@@ -118,6 +118,9 @@ void PropertyEditorPanel::Render()
                     [&]() { return lightObj->GetDiffuseColor(); },
                     [&](FLinearColor c) { lightObj->SetDiffuseColor(c); });
 
+                    UBillboardComponent* billComp = Cast<UBillboardComponent>(lightObj->GetOwner()->GetRootComponent());
+                    billComp->SetColor(lightObj->GetDiffuseColor());
+
                 DrawColorProperty("Specular Color",
                     [&]() { return lightObj->GetSpecularColor(); },
                     [&](FLinearColor c) { lightObj->SetSpecularColor(c); });
