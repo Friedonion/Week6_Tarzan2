@@ -26,12 +26,6 @@ cbuffer MaterialConstants : register(b1)
     FMaterial Material;
 }
 
-cbuffer FlagConstants : register(b2)
-{
-    bool IsLit;
-    float3 flagPad0;
-}
-
 struct PS_INPUT
 {
     float4 position : SV_POSITION; // 클립 공간 화면 좌표

@@ -39,11 +39,6 @@ cbuffer MaterialConstants : register(b3)
 {
     FMaterial Material;
 }
-cbuffer FlagConstants : register(b4)
-{
-    bool IsLit;
-    float3 flagPad0;
-}
 
 cbuffer SubMeshConstants : register(b5)
 {
@@ -111,16 +106,13 @@ PS_OUTPUT mainPS(PS_INPUT input)
         normalWS = GetNormalFromMap(input);
     }
 
-    if (IsLit)
-    {
-        float3 lightRgb = Lighting(input.worldPos, normalWS).rgb;
-        float3 litColor = baseColor * lightRgb;
-        output.color = float4(litColor, 1);
-    }
-    else
-    {
-        output.color = float4(baseColor, 1);
-    }
+#if LIGHTING_MODEL_UNLIT
+    output.color = float4(baseColor, 1);
+#else
+    float3 lightRgb = Lighting(input.worldPos, normalWS).rgb;
+    float3 litColor = baseColor * lightRgb;
+    output.color = float4(litColor, 1);
+#endif
 
     if (isSelected)
     {
