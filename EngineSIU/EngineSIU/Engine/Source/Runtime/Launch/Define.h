@@ -86,7 +86,7 @@ struct FObjMaterialInfo
     FVector Ambient;   // Ka : Ambient (Vector)
     FVector Emissive;  // Ke : Emissive (Vector)
 
-    float SpecularScalar; // Ns : Specular Power (Float)
+    float SpecularScalar =500.0f; // Ns : Specular Power (Float)
     float DensityScalar;  // Ni : Optical Density (Float)
     float TransparencyScalar; // d or Tr  : Transparency of surface (Float)
 
