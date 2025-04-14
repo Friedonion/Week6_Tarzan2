@@ -400,8 +400,7 @@ struct FScreenConstants
 
 struct FBillLightConstant
 {
-    FVector lightColor;
-    float isLight; // 0 = 텍스트, 1 = 라이트
+    FLinearColor lightColor;
 };
 
 struct FFogConstants

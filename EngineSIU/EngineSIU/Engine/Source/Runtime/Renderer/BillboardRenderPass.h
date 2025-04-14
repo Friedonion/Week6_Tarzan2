@@ -35,7 +35,7 @@ public:
 
     void PrePareBillLightConstant() const;
 
-    void UpdateBillLightContant(FVector color, int isLight);
+    void UpdateBillLightConstant(FLinearColor color);
 
     // 상수 버퍼 업데이트 함수
     void UpdateSubUVConstant(FVector2D uvOffset, FVector2D uvScale) const;

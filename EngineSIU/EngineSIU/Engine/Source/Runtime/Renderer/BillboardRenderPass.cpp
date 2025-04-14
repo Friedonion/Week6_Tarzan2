@@ -80,13 +80,12 @@ void FBillboardRenderPass::PrePareBillLightConstant() const
     BufferManager->BindConstantBuffer(TEXT("FBillLightConstant"), 3, EShaderStage::Pixel);
 }
 
-void FBillboardRenderPass::UpdateBillLightContant(FVector color, int isLight)
+void FBillboardRenderPass::UpdateBillLightConstant(FLinearColor color)
 {
     FBillLightConstant data;
 
     data.lightColor = color;
-    data.isLight = isLight;
-
+  
     BufferManager->UpdateConstantBuffer(TEXT("FBillLightConstant"), data);
 }
 
@@ -198,17 +197,17 @@ void FBillboardRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& 
             BufferManager->CreateUnicodeTextBuffer(TextComp->GetText(), Buffers, Width, Height, TextComp->GetColumnCount(), TextComp->GetRowCount());
 
             UpdateSubUVConstant(FVector2D(), FVector2D(1, 1));
-   
+            UpdateBillLightConstant(FLinearColor(1.f,1.f,1.f,1.f));
 
             RenderTextPrimitive(Buffers.VertexInfo.VertexBuffer, Buffers.VertexInfo.NumVertices, TextComp->Texture->TextureSRV, TextComp->Texture->SamplerState);
 
         }
         else
         {
-          
-          
+           
+
             UpdateSubUVConstant(FVector2D(BillboardComp->finalIndexU, BillboardComp->finalIndexV), FVector2D(1, 1));
-    
+            UpdateBillLightConstant(BillboardComp->GetColor());
 
             RenderTexturePrimitive(VertexInfo.VertexBuffer, VertexInfo.NumVertices,
                 IndexInfo.IndexBuffer, IndexInfo.NumIndices, BillboardComp->Texture->TextureSRV,
