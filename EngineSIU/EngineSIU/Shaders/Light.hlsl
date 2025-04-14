@@ -140,8 +140,8 @@ float4 CalculateSpotLight(int nIndex, float3 vPosition, float3 vNormal)
         return float4(0.0f, 0.0f, 0.0f, 1.0f);
     
     float fCos = dot(vToLight, -vLightDir);
-    float fCosInner = cos(radians(gLights[nIndex].m_fInnerDegree));
-    float fCosOuter = cos(radians(gLights[nIndex].m_fOuterDegree));
+    float fCosInner = cos(radians(gLights[nIndex].m_fInnerDegree/2));
+    float fCosOuter = cos(radians(gLights[nIndex].m_fOuterDegree/2));
     float3 lit;
     float3 ambientLight = gcGlobalAmbientLight * Material.AmbientColor.rgb;
 

@@ -146,16 +146,26 @@ void PropertyEditorPanel::Render()
                 }
 
                 float InnerAngle = lightObj->GetInnerAngle();
-                if (ImGui::SliderFloat("InnerAngle", &InnerAngle, 0.01f, 90.0f, "%.1f"))
-                {
-                    lightObj->SetInnerAngle(InnerAngle);
-                }
-
                 float OuterAngle = lightObj->GetOuterAngle();
-                if (ImGui::SliderFloat("OuterAngle", &OuterAngle, 0.01f, 90.0f, "%.1f"))
+
+                bool innerChanged = ImGui::SliderFloat("InnerAngle", &InnerAngle, 0.01f, 90.0f, "%.1f");
+                bool outerChanged = ImGui::SliderFloat("OuterAngle", &OuterAngle, 0.01f, 90.0f, "%.1f");
+
+                if (innerChanged || outerChanged)
                 {
+                    // 먼저 Inner과 Outer 간의 관계를 정리
+                    if (InnerAngle > OuterAngle)
+                    {
+                        if (innerChanged && !outerChanged)
+                            OuterAngle = InnerAngle;
+                        else
+                            InnerAngle = OuterAngle;
+                    }
+
+                    lightObj->SetInnerAngle(InnerAngle);
                     lightObj->SetOuterAngle(OuterAngle);
                 }
+
                 ImGui::TreePop();
             }
 
