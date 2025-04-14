@@ -34,6 +34,7 @@ struct PS_INPUT
     float2 texcoord : TEXCOORD2; // UV 좌표
     int materialIndex : MATERIAL_INDEX; // 머티리얼 인덱스
     float3x3 TBN : TANGENT; // 탄젠트 공간 (tangent, bitangent, normal)
+    float3 GouraudColor : COLOR2;
 };
 
 PS_INPUT mainVS(VS_INPUT input)

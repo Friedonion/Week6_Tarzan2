@@ -70,6 +70,7 @@ struct PS_INPUT
     float2 texcoord : TEXCOORD2; // UV 좌표
     int materialIndex : MATERIAL_INDEX; // 머티리얼 인덱스
     float3x3 TBN : TANGENT; // 탄젠트 공간 (tangent, bitangent, normal)
+    float3 GouraudColor : COLOR2; // 구로우드 색상
 };
 
 struct PS_OUTPUT
@@ -106,20 +107,27 @@ PS_OUTPUT mainPS(PS_INPUT input)
 
     float3 normalWS = input.TBN[2].xyz;
 
+ 
+    
     if (HasBumpTexture) // 노말맵이 유효한 경우
     {
         normalWS = GetNormalFromMap(input);
     }
+    
+      #if LIGHTING_MODEL_NORMAL
+       output.color = float4(normalWS*0.5+0.5, 1);
+       return output;
+      #endif
 
     if (IsLit)
     {
-        float3 lightRgb = Lighting(input.worldPos, normalWS).rgb;
-        float3 litColor = baseColor * lightRgb;
-        output.color = float4(normalWS*0.5f+0.5f, 1);
+            float3 lightRgb = Lighting(input.worldPos, normalWS).rgb;
+            float3 litColor = baseColor * lightRgb;
+            output.color = float4(litColor, 1);
     }
     else
     {
-        output.color = float4(normalWS*0.5f+0.5f, 1);
+        output.color = float4(baseColor, 1);
     }
 
     if (isSelected)
