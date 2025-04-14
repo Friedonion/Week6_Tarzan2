@@ -15,6 +15,27 @@ cbuffer CameraConstants : register(b1)
     float pad;
 };
 
+struct FMaterial
+{
+    float3 DiffuseColor;
+    float TransparencyScalar;
+    
+    float3 AmbientColor;
+    float DensityScalar;
+    
+    float3 SpecularColor;
+    float SpecularScalar;
+    
+    float3 EmissiveColor;
+    int TextureInfo; // 0b0001: Diffuse, 0b0010: Ambient, 0b0100: Specular, 0b1000: Bump
+};
+cbuffer MaterialConstants : register(b3)
+{
+    FMaterial Material;
+}
+
+#include "Light.hlsl"
+
 struct VS_INPUT
 {
     float3 position : POSITION; // 버텍스 위치
@@ -34,7 +55,7 @@ struct PS_INPUT
     float2 texcoord : TEXCOORD2; // UV 좌표
     int materialIndex : MATERIAL_INDEX; // 머티리얼 인덱스
     float3x3 TBN : TANGENT; // 탄젠트 공간 (tangent, bitangent, normal)
-    float3 GouraudColor : COLOR2;
+    float4 GouraudColor : COLOR2;
 };
 
 PS_INPUT mainVS(VS_INPUT input)
@@ -72,5 +93,11 @@ PS_INPUT mainVS(VS_INPUT input)
     
     output.normalFlag = 1.0f;
     
+#if LIGHTING_MODEL_GOURAUD
+    output.GouraudColor = float4(Lighting(worldPosition.xyz, WorldNormal).rgb, 1.0);
+#else
+    output.GouraudColor = float4(1, 1, 1, 1); // fallback color or unused
+#endif
+
     return output;
 }

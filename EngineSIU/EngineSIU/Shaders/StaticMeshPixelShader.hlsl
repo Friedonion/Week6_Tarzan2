@@ -65,7 +65,7 @@ struct PS_INPUT
     float2 texcoord : TEXCOORD2; // UV 좌표
     int materialIndex : MATERIAL_INDEX; // 머티리얼 인덱스
     float3x3 TBN : TANGENT; // 탄젠트 공간 (tangent, bitangent, normal)
-    float3 GouraudColor : COLOR2; // 구로우드 색상
+    float4 GouraudColor : COLOR2; // 구로우드 색상
 };
 
 struct PS_OUTPUT
@@ -111,7 +111,11 @@ PS_OUTPUT mainPS(PS_INPUT input)
 
 #if LIGHTING_MODEL_UNLIT
     output.color = float4(baseColor, 1);
-#else
+#elif LIGHTING_MODEL_NORMAL
+    output.color = float4(normalWS*0.5+0.5, 1);
+#elif LIGHTING_MODEL_GOURAUD
+    output.color = float4(input.GouraudColor.xyz * baseColor , 1);
+#else  
     float3 lightRgb = Lighting(input.worldPos, normalWS).rgb;
     float3 litColor = baseColor * lightRgb;
     output.color = float4(litColor, 1);
