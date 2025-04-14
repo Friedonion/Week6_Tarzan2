@@ -51,7 +51,7 @@ float BlinnPhongLightingModel(float3 vToLight, float3 vPosition, float3 vNormal,
 {
     float3 vView = normalize(CameraPosition - vPosition);
     float3 vHalf = normalize(vToLight + vView);
-    return pow(dot(normalize(vNormal), vHalf), fSpecularScalar);   
+    return pow(dot(normalize(vNormal), vHalf), max(fSpecularScalar, 4.0f));
     // return pow(max(dot(normalize(vNormal), vHalf), 0.0f), 1);    // max(dot(normalize(vNormal), vHalf), 0.0f) 는 적절하지 않다.
 }
 
