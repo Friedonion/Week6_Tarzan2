@@ -1,4 +1,5 @@
 #include "DXDShaderManager.h"
+#include "DXDBufferManager.h"
 
 
 FDXDShaderManager::FDXDShaderManager(ID3D11Device* Device)

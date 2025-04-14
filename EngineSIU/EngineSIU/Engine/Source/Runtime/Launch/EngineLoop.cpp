@@ -9,7 +9,8 @@
 #include "UnrealEd/EditorViewportClient.h"
 #include "UnrealEd/UnrealEd.h"
 #include "D3D11RHI/GraphicDevice.h"
-
+#include "D3D11RHI/DXDShaderManager.h"
+#include "Renderer/StaticMeshRenderPass.h"
 #include "Engine/EditorEngine.h"
 
 
@@ -211,6 +212,9 @@ void FEngineLoop::Tick()
         GUObjectArray.ProcessPendingDestroyObjects();
 
         GraphicDevice.SwapBuffer();
+        
+        //HotReloadShader(L"Shaders");
+
         do
         {
             Sleep(0);
@@ -246,6 +250,52 @@ void FEngineLoop::Input()
     {
         bTestInput = false;
     }
+}
+
+void FEngineLoop::HotReloadShader(const std::wstring& dir)
+{
+    // 감시할 디렉토리의 변경 이벤트 핸들 얻기
+    HANDLE hChange = FindFirstChangeNotificationW(
+        dir.c_str(),
+        TRUE,   // 하위 디렉토리 포함
+        FILE_NOTIFY_CHANGE_FILE_NAME | FILE_NOTIFY_CHANGE_DIR_NAME | FILE_NOTIFY_CHANGE_SIZE
+    );
+
+    if (hChange == INVALID_HANDLE_VALUE)
+    {
+        std::wcerr << L"FindFirstChangeNotification failed: " << GetLastError() << std::endl;
+        return;
+    }
+
+    std::wcout << L"Monitoring directory with FindFirstChangeNotification: " << dir << std::endl;
+
+    while (true)
+    {
+        // 변경 이벤트가 발생할 때까지 대기
+        DWORD waitStatus = WaitForSingleObject(hChange, INFINITE);
+        if (waitStatus == WAIT_OBJECT_0)
+        {
+            std::wcout << L"Directory change detected!" << std::endl;
+
+            // 쉐이더 리로드
+            Renderer.ShaderManager->ReleaseAllShader();
+            Renderer.StaticMeshRenderPass->CreateShader();
+
+            // 변경 이벤트 핸들을 재설정
+            if (!FindNextChangeNotification(hChange))
+            {
+                std::wcerr << L"FindNextChangeNotification failed: " << GetLastError() << std::endl;
+                break;
+            }
+        }
+        else
+        {
+            std::wcerr << L"WaitForSingleObject error: " << GetLastError() << std::endl;
+            break;
+        }
+    }
+
+    FindCloseChangeNotification(hChange);
 }
 
 void FEngineLoop::Exit()

@@ -27,6 +27,7 @@ public:
     void Exit();
     float GetAspectRatio(IDXGISwapChain* swapChain) const;
     void Input();
+    void HotReloadShader(const std::wstring& dir);
 
 private:
     void WindowInit(HINSTANCE hInstance);
