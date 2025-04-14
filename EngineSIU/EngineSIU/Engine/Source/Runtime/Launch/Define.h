@@ -267,11 +267,19 @@ struct FCone
     float pad[3];
 
 };
+struct FSphere
+{
+    FVector Center;
+    float Radius;
+    FVector4 Color;
+    int SegmentCount;
+    int pad[3];
+};
 struct FPrimitiveCounts
 {
     int BoundingBoxCount;
-    int pad;
     int ConeCount;
+    int SphereCount;
     int pad1;
 };
 

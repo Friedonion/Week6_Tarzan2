@@ -13,6 +13,9 @@
 #include "Editor/UnrealEd/EditorViewportClient.h"
 #include <FFrustrum.h>
 
+#include "Components/Light/PointLightComponent.h"
+#include "Components/Light/SpotLightComponent.h"
+
 //------------------------------------------------------------------------------
 // 생성자/소멸자
 //------------------------------------------------------------------------------
@@ -88,6 +91,13 @@ void FUpdateLightBufferPass::Render(const std::shared_ptr<FEditorViewportClient>
             VisiblePointLights.Add(Light);
         }
 
+        if (UPointLightComponent* PointLight = Cast<UPointLightComponent>(Light))
+        {
+
+        } else if (USpotLightComponent* SpotLight = Cast<USpotLightComponent>(Light))
+        {
+            
+        }
     }
 
     SortLightsByDistance(VisiblePointLights, Viewport->ViewTransformPerspective.GetLocation());
