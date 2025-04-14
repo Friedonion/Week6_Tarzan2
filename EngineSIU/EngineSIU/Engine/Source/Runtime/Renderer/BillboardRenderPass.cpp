@@ -23,6 +23,7 @@
 
 #include <FFrustrum.h>
 
+
 FBillboardRenderPass::FBillboardRenderPass()
     : BufferManager(nullptr)
     , Graphics(nullptr)
@@ -72,6 +73,21 @@ void FBillboardRenderPass::PrepareSubUVConstant() const
 {
     BufferManager->BindConstantBuffer(TEXT("FSubUVConstant"), 1, EShaderStage::Vertex);
     BufferManager->BindConstantBuffer(TEXT("FSubUVConstant"), 1, EShaderStage::Pixel);
+}
+
+void FBillboardRenderPass::PrePareBillLightConstant() const
+{
+    BufferManager->BindConstantBuffer(TEXT("FBillLightConstant"), 3, EShaderStage::Pixel);
+}
+
+void FBillboardRenderPass::UpdateBillLightContant(FVector color, int isLight)
+{
+    FBillLightConstant data;
+
+    data.lightColor = color;
+    data.isLight = isLight;
+
+    BufferManager->UpdateConstantBuffer(TEXT("FBillLightConstant"), data);
 }
 
 void FBillboardRenderPass::UpdateSubUVConstant(FVector2D uvOffset, FVector2D uvScale) const
@@ -145,6 +161,8 @@ void FBillboardRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& 
 
     PrepareSubUVConstant();
 
+    PrePareBillLightConstant();
+
     FVertexInfo VertexInfo;
     FIndexInfo IndexInfo;
 
@@ -180,13 +198,17 @@ void FBillboardRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& 
             BufferManager->CreateUnicodeTextBuffer(TextComp->GetText(), Buffers, Width, Height, TextComp->GetColumnCount(), TextComp->GetRowCount());
 
             UpdateSubUVConstant(FVector2D(), FVector2D(1, 1));
+   
 
             RenderTextPrimitive(Buffers.VertexInfo.VertexBuffer, Buffers.VertexInfo.NumVertices, TextComp->Texture->TextureSRV, TextComp->Texture->SamplerState);
 
         }
         else
         {
+          
+          
             UpdateSubUVConstant(FVector2D(BillboardComp->finalIndexU, BillboardComp->finalIndexV), FVector2D(1, 1));
+    
 
             RenderTexturePrimitive(VertexInfo.VertexBuffer, VertexInfo.NumVertices,
                 IndexInfo.IndexBuffer, IndexInfo.NumIndices, BillboardComp->Texture->TextureSRV,

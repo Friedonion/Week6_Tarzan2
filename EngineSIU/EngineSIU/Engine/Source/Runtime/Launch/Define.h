@@ -398,6 +398,11 @@ struct FScreenConstants
     FVector2D Padding;      // 정렬용 (사용 안 해도 무방)
 };
 
+struct FBillLightConstant
+{
+    FVector lightColor;
+    float isLight; // 0 = 텍스트, 1 = 라이트
+};
 
 struct FFogConstants
 {

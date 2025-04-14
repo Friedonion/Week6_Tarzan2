@@ -1,6 +1,12 @@
 Texture2D gTexture : register(t0);
 SamplerState gSampler : register(s0);
 
+cbuffer LightInfo : register(b3)
+{
+    float3 lightColor;
+    float isLight; // 0 = 텍스트, 1 = 라이트
+}
+
 cbuffer SubUVConstant : register(b1)
 {
     float2 uvOffset;
@@ -37,7 +43,7 @@ float4 main(PSInput input) : SV_TARGET
     }
     else
     {
-        output.color = col;
+        output.color = lerp(col, col * float4(lightColor, 1.0f), isLight);
     }
     
     output.uuid = UUID;
