@@ -38,17 +38,27 @@ void FUpdateLightBufferPass::Initialize(FDXDBufferManager* InBufferManager, FGra
 }
 
 
-void SortLightsByDistance(TArray<ULightComponent*>& Lights, const FVector& CameraPosition)
+void SortLightsByDistanceAndIntensity(TArray<ULightComponent*>& Lights, const FVector& CameraPosition)
 {
-    // 비교 함수: 카메라에 가까운 라이트가 앞으로 오도록 정렬
-    auto CompareByDistance = [&CameraPosition](const ULightComponent* A, const ULightComponent* B) -> bool {
-        float DistA = FVector::Distance(A->GetWorldLocation(), CameraPosition);
-        float DistB = FVector::Distance(B->GetWorldLocation(), CameraPosition);
-        return DistA < DistB;
+    // 비교 함수: 카메라와의 거리와 빛의 강도를 모두 고려하여 정렬
+    auto CompareByDistanceAndIntensity = [&CameraPosition](const ULightComponent* A, const ULightComponent* B) -> bool {
+        float DistA = FVector::DistSquared(A->GetWorldLocation(), CameraPosition);
+        float DistB = FVector::DistSquared(B->GetWorldLocation(), CameraPosition);
+
+        // 빛의 강도 (Color의 밝기로 계산)
+        float IntensityA =  A->GetIntensity();
+        float IntensityB =  B->GetIntensity();
+
+        // 거리에 따른 감쇠 적용 (거리의 제곱에 반비례)
+        float ScoreA = IntensityA / (DistA * DistA);
+        float ScoreB = IntensityB / (DistB * DistB);
+
+        // 점수가 높은 라이트가 앞으로 오도록 정렬 (내림차순)
+        return ScoreA > ScoreB;
         };
 
     // 정렬 수행
-    std::sort(Lights.GetData(), Lights.GetData() + Lights.Num(), CompareByDistance);
+    std::sort(Lights.GetData(), Lights.GetData() + Lights.Num(), CompareByDistanceAndIntensity);
 }
 
 
@@ -117,7 +127,7 @@ void FUpdateLightBufferPass::Render(const std::shared_ptr<FEditorViewportClient>
         }
     }
 
-    SortLightsByDistance(VisiblePointLights, Viewport->ViewTransformPerspective.GetLocation());
+    SortLightsByDistanceAndIntensity(VisiblePointLights, Viewport->ViewTransformPerspective.GetLocation());
 
     for (auto Light : VisiblePointLights)
     {
