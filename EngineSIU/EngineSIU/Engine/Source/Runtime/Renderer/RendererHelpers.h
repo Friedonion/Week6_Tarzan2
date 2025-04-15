@@ -37,7 +37,11 @@ namespace MaterialUtils {
            
 
             // Shader Resource View 바인딩 (텍스처와 노말 맵)
-            Graphics->DeviceContext->PSSetShaderResources(0, 1, &texture->TextureSRV);
+            if (texture)
+            {
+                Graphics->DeviceContext->PSSetShaderResources(0, 1, &texture->TextureSRV);
+                Graphics->DeviceContext->PSSetSamplers(0, 1, &texture->SamplerState);
+            }
             if (TextureNormal)
                 Graphics->DeviceContext->PSSetShaderResources(1, 1, &TextureNormal->TextureSRV);
             if (TextureMetallic)
@@ -46,8 +50,8 @@ namespace MaterialUtils {
                 Graphics->DeviceContext->PSSetShaderResources(3, 1, &TextureSpecular->TextureSRV);
             if (TextureEmissive)
                 Graphics->DeviceContext->PSSetShaderResources(4, 1, &TextureEmissive->TextureSRV);
-            if (texture)
-                Graphics->DeviceContext->PSSetSamplers(0, 1, &texture->SamplerState);
+ 
+                
         }
         else {
             ID3D11ShaderResourceView* nullSRVs[2] = { nullptr, nullptr };

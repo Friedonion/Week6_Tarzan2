@@ -185,6 +185,7 @@ void FBillboardRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& 
         if (UParticleSubUVComponent* SubUVParticle = Cast<UParticleSubUVComponent>(BillboardComp))
         {
             UpdateSubUVConstant(SubUVParticle->GetUVOffset(), SubUVParticle->GetUVScale());
+            UpdateBillLightConstant(FLinearColor(1.f, 1.f, 1.f, 1.f));
 
             RenderTexturePrimitive(VertexInfo.VertexBuffer, VertexInfo.NumVertices, IndexInfo.IndexBuffer,
                 IndexInfo.NumIndices, SubUVParticle->Texture->TextureSRV, SubUVParticle->Texture->SamplerState);
@@ -204,8 +205,6 @@ void FBillboardRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& 
         }
         else
         {
-           
-
             UpdateSubUVConstant(FVector2D(BillboardComp->finalIndexU, BillboardComp->finalIndexV), FVector2D(1, 1));
             UpdateBillLightConstant(BillboardComp->GetColor());
 

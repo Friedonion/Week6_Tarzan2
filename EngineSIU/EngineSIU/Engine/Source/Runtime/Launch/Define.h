@@ -71,46 +71,49 @@ struct FObjInfo
     TArray<FMaterialSubset> MaterialSubsets;
 };
 
+
+
+
 struct FObjMaterialInfo
 {
-    FString MaterialName;  // newmtl : Material Name.
+    FString MaterialName = TEXT("");  // newmtl : Material Name.
 
-    bool bHasTexture = false;  // Has Texture?
-    bool bTransparent = false; // Has alpha channel?
+    bool bHasTexture = false;        // Has Texture?
+    bool bTransparent = false;       // Has alpha channel?
 
-    FVector Diffuse;  // Kd : Diffuse (Vector4)
-    FVector Specular;  // Ks : Specular (Vector) 
-    FVector Ambient;   // Ka : Ambient (Vector)
-    FVector Emissive;  // Ke : Emissive (Vector)
+    FVector Diffuse = FVector(1.0f, 1.0f, 1.0f);    // Kd : Diffuse
+    FVector Specular = FVector(0.5f, 0.5f, 0.5f);   // Ks : Specular
+    FVector Ambient = FVector(0.2f, 0.2f, 0.2f);    // Ka : Ambient
+    FVector Emissive = FVector(0.0f, 0.0f, 0.0f);   // Ke : Emissive
 
-    float SpecularScalar =500.0f; // Ns : Specular Power (Float)
-    float DensityScalar;  // Ni : Optical Density (Float)
-    float TransparencyScalar; // d or Tr  : Transparency of surface (Float)
+    float SpecularScalar = 500.0f;   // Ns : Specular Power
+    float DensityScalar = 1.0f;      // Ni : Optical Density
+    float TransparencyScalar = 1.0f; // d : 1 = opaque
 
-    uint32 IlluminanceModel; // illum: illumination Model between 0 and 10. (UINT)
+    uint32 IlluminanceModel = 2;     // illum model (default to 2: diffuse + specular)
 
     /* Texture */
-    FString DiffuseTextureName;  // map_Kd : Diffuse texture
+    FString DiffuseTextureName = TEXT("");
     FWString DiffuseTexturePath;
 
-    FString MetallicTextureName;  // map_refl : Metallic texture
+    FString MetallicTextureName = TEXT("");
     FWString MetallicTexturePath;
 
-    FString SpecularTextureName; // map_Ks : Specular texture
+    FString SpecularTextureName = TEXT("");
     FWString SpecularTexturePath;
 
-    FString BumpTextureName;     // map_Bump : Bump texture
+    FString BumpTextureName = TEXT("");
     FWString BumpTexturePath;
 
-    FString AlphaTextureName;    // map_d : Alpha texture
+    FString AlphaTextureName = TEXT("");
     FWString AlphaTexturePath;
 
-    FString EmissiveTextureName; // map_Ke : Emissive texture
+    FString EmissiveTextureName = TEXT("");
     FWString EmissiveTexturePath;
 
     int TextureInfo = 0;
-//FString DisplacementTextureName; // map_disp : Displacement texture
 };
+
 
 // Cooked Data
 namespace OBJ

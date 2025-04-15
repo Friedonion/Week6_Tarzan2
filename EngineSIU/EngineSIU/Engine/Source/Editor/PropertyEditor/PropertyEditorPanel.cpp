@@ -127,7 +127,7 @@ void PropertyEditorPanel::Render()
                     [&](FLinearColor c) { lightObj->SetSpecularColor(c); });
 
                 float Intensity = lightObj->GetIntensity();
-                if (ImGui::SliderFloat("Intensity", &Intensity, 0.0f, 10.0f, "%.1f"))
+                if (ImGui::SliderFloat("Intensity", &Intensity, 0.0f, 1000.0f, "%.1f"))
                     lightObj->SetIntensity(Intensity);
 
                  /*  
@@ -140,7 +140,7 @@ void PropertyEditorPanel::Render()
                 */
 
                 float attenuation = lightObj->GetAttenuation();
-                if (ImGui::SliderFloat("Attenuation", &attenuation, 0.01f, 10.f, "%.1f")) {
+                if (ImGui::SliderFloat("Attenuation", &attenuation, 0.01f, 10.f, "%.3f")) {
                     lightObj->SetAttenuation(attenuation);
                 }
 
