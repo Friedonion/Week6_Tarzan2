@@ -56,6 +56,7 @@ struct PS_INPUT
     int materialIndex : MATERIAL_INDEX; // 머티리얼 인덱스
     float3x3 TBN : TANGENT; // 탄젠트 공간 (tangent, bitangent, normal)
     float4 GouraudColor : COLOR2;
+    float4 GouraudSpecular : COLOR3; 
 };
 
 PS_INPUT mainVS(VS_INPUT input)
@@ -94,9 +95,11 @@ PS_INPUT mainVS(VS_INPUT input)
     output.normalFlag = 1.0f;
     
 #if LIGHTING_MODEL_GOURAUD
-    output.GouraudColor = float4(Lighting(worldPosition.xyz, WorldNormal).rgb, 1.0);
+    output.GouraudColor = float4(Lighting(worldPosition.xyz, WorldNormal).Diffuse.rgb, 1.0);
+    output.GouraudSpecular = float4(Lighting(worldPosition.xyz, WorldNormal).Specular.rgb, 1.0);
 #else
     output.GouraudColor = float4(1, 1, 1, 1); // fallback color or unused
+    output.GouraudSpecular = float4(1, 1, 1, 1); // fallback color or unused
 #endif
 
     return output;

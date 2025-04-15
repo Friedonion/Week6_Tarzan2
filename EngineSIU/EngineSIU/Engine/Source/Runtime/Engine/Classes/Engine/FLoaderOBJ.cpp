@@ -343,6 +343,42 @@ bool FLoaderOBJ::ParseMaterial(FObjInfo& OutObjInfo, OBJ::FStaticMeshRenderData&
             CreateTextureFromFile(OutFStaticMesh.Materials[MaterialIndex].BumpTexturePath);
             OutFStaticMesh.Materials[MaterialIndex].TextureInfo |= ETextureType::TEXTURE_Bump;
         }
+        if (Token == "map_Ns")
+        {
+            LineStream >> Line;
+            OutFStaticMesh.Materials[MaterialIndex].SpecularTextureName = Line;
+            FWString TexturePath = OutObjInfo.FilePath + ((FString)Line).ToWideString();
+            OutFStaticMesh.Materials[MaterialIndex].SpecularTexturePath = TexturePath;
+            OutFStaticMesh.Materials[MaterialIndex].bHasTexture = true;
+
+            CreateTextureFromFile(TexturePath);
+            OutFStaticMesh.Materials[MaterialIndex].TextureInfo |= ETextureType::TEXTURE_Specular; // or TEXTURE_Roughness if PBR
+        }
+
+        if (Token == "map_refl")
+        {
+            LineStream >> Line;
+            OutFStaticMesh.Materials[MaterialIndex].MetallicTextureName = Line;
+            FWString TexturePath = OutObjInfo.FilePath + ((FString)Line).ToWideString();
+            OutFStaticMesh.Materials[MaterialIndex].MetallicTexturePath = TexturePath;
+            OutFStaticMesh.Materials[MaterialIndex].bHasTexture = true;
+
+            CreateTextureFromFile(TexturePath);
+            OutFStaticMesh.Materials[MaterialIndex].TextureInfo |= ETextureType::TEXTURE_Metallic;
+        }
+
+        if (Token == "map_Ke")
+        {
+            LineStream >> Line;
+            OutFStaticMesh.Materials[MaterialIndex].EmissiveTextureName = Line;
+            FWString TexturePath = OutObjInfo.FilePath + ((FString)Line).ToWideString();
+            OutFStaticMesh.Materials[MaterialIndex].EmissiveTexturePath = TexturePath;
+            OutFStaticMesh.Materials[MaterialIndex].bHasTexture = true;
+
+            CreateTextureFromFile(TexturePath);
+            OutFStaticMesh.Materials[MaterialIndex].TextureInfo |= ETextureType::TEXTURE_Emissive;
+        }
+
     }
 
     return true;
@@ -642,17 +678,20 @@ bool FManagerOBJ::SaveStaticMeshToBinary(const FWString& FilePath, const OBJ::FS
         File.write(reinterpret_cast<const char*>(&Material.DensityScalar), sizeof(Material.DensityScalar));
         File.write(reinterpret_cast<const char*>(&Material.TransparencyScalar), sizeof(Material.TransparencyScalar));
         File.write(reinterpret_cast<const char*>(&Material.IlluminanceModel), sizeof(Material.IlluminanceModel));
+        File.write(reinterpret_cast<const char*>(&Material.TextureInfo), sizeof(Material.TextureInfo));
 
         Serializer::WriteFString(File, Material.DiffuseTextureName);
         Serializer::WriteFWString(File, Material.DiffuseTexturePath);
-        Serializer::WriteFString(File, Material.AmbientTextureName);
-        Serializer::WriteFWString(File, Material.AmbientTexturePath);
+        Serializer::WriteFString(File, Material.MetallicTextureName);
+        Serializer::WriteFWString(File, Material.MetallicTexturePath);
         Serializer::WriteFString(File, Material.SpecularTextureName);
         Serializer::WriteFWString(File, Material.SpecularTexturePath);
         Serializer::WriteFString(File, Material.BumpTextureName);
         Serializer::WriteFWString(File, Material.BumpTexturePath);
         Serializer::WriteFString(File, Material.AlphaTextureName);
         Serializer::WriteFWString(File, Material.AlphaTexturePath);
+        Serializer::WriteFString(File, Material.EmissiveTextureName);
+        Serializer::WriteFWString(File, Material.EmissiveTexturePath);
     }
 
     // Material Subsets
@@ -723,24 +762,27 @@ bool FManagerOBJ::LoadStaticMeshFromBinary(const FWString& FilePath, OBJ::FStati
         File.read(reinterpret_cast<char*>(&Material.DensityScalar), sizeof(Material.DensityScalar));
         File.read(reinterpret_cast<char*>(&Material.TransparencyScalar), sizeof(Material.TransparencyScalar));
         File.read(reinterpret_cast<char*>(&Material.IlluminanceModel), sizeof(Material.IlluminanceModel));
+        File.read(reinterpret_cast<char*>(&Material.TextureInfo), sizeof(Material.TextureInfo));
         Serializer::ReadFString(File, Material.DiffuseTextureName);
         Serializer::ReadFWString(File, Material.DiffuseTexturePath);
-        Serializer::ReadFString(File, Material.AmbientTextureName);
-        Serializer::ReadFWString(File, Material.AmbientTexturePath);
+        Serializer::ReadFString(File, Material.MetallicTextureName);
+        Serializer::ReadFWString(File, Material.MetallicTexturePath);
         Serializer::ReadFString(File, Material.SpecularTextureName);
         Serializer::ReadFWString(File, Material.SpecularTexturePath);
         Serializer::ReadFString(File, Material.BumpTextureName);
         Serializer::ReadFWString(File, Material.BumpTexturePath);
         Serializer::ReadFString(File, Material.AlphaTextureName);
         Serializer::ReadFWString(File, Material.AlphaTexturePath);
+        Serializer::ReadFString(File, Material.EmissiveTextureName);
+        Serializer::ReadFWString(File, Material.EmissiveTexturePath);
 
         if (!Material.DiffuseTexturePath.empty())
         {
             Textures.AddUnique(Material.DiffuseTexturePath);
         }
-        if (!Material.AmbientTexturePath.empty())
+        if (!Material.MetallicTexturePath.empty())
         {
-            Textures.AddUnique(Material.AmbientTexturePath);
+            Textures.AddUnique(Material.MetallicTexturePath);
         }
         if (!Material.SpecularTexturePath.empty())
         {
@@ -753,6 +795,10 @@ bool FManagerOBJ::LoadStaticMeshFromBinary(const FWString& FilePath, OBJ::FStati
         if (!Material.AlphaTexturePath.empty())
         {
             Textures.AddUnique(Material.AlphaTexturePath);
+        }
+        if (!Material.EmissiveTexturePath.empty())
+        {
+            Textures.AddUnique(Material.EmissiveTexturePath);
         }
     }
 
