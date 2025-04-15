@@ -12,14 +12,14 @@ struct LIGHT
     float pad2;
 
     float3 m_cSpecular; // Specular Color
-    float pad3;
-
-    float3 m_vPosition; // position of light (used in point, spot)
     float m_fInnerDegree; // spotlight inner radius in degree
 
-    float3 m_vDirection;    // direction (used in directional, spot)
+    float3 m_vPosition; // position of light (used in point, spot)
     float m_fOuterDegree; // spotlight outer radius in degree
-
+    
+    float3 m_vDirection;    // direction (used in directional, spot)
+    float pad3;
+    
     float m_fAttenuation; // 거리 기반 감쇠 계수
     int m_bEnable;
     int m_nType;
@@ -130,7 +130,7 @@ float4 CalculatePointLight(int nIndex, float3 vPosition, float3 vNormal)
 float4 CalculateSpotLight(int nIndex, float3 vPosition, float3 vNormal)
 {
     float3 vToLight = normalize(gLights[nIndex].m_vPosition - vPosition);
-    float3 vLightDir = normalize(gLights[nIndex].m_vDirection);
+    float3 vLightDir = -normalize(gLights[nIndex].m_vDirection);
     float fDistance = length(gLights[nIndex].m_vPosition - vPosition);
     
     // 감쇠 반경을 벗어나면 기여하지 않음
@@ -139,9 +139,9 @@ float4 CalculateSpotLight(int nIndex, float3 vPosition, float3 vNormal)
     if (dot(vNormal, vToLight) < 0.0f)
         return float4(0.0f, 0.0f, 0.0f, 1.0f);
     
-    float fCos = dot(vToLight, -vLightDir);
-    float fCosInner = cos(radians(gLights[nIndex].m_fInnerDegree/2));
-    float fCosOuter = cos(radians(gLights[nIndex].m_fOuterDegree/2));
+    float fCos = dot(vToLight, vLightDir);
+    float fCosInner = cos(radians(gLights[nIndex].m_fInnerDegree));
+    float fCosOuter = cos(radians(gLights[nIndex].m_fOuterDegree));
     float3 lit;
     float3 ambientLight = gcGlobalAmbientLight * Material.AmbientColor.rgb;
 
@@ -161,7 +161,7 @@ float4 CalculateSpotLight(int nIndex, float3 vPosition, float3 vNormal)
     float normalizedRadius = fDistance / gLights[nIndex].m_fAttRadius;
     float distanceAttenuation = 1.0f / (1.0f + gLights[nIndex].m_fAttenuation * fDistance * fDistance);
     float radiusAttenuation = 1 - normalizedRadius * normalizedRadius;
-    float fSpotAttenuation = 1 - saturate((fCos - fCosOuter) / (fCosInner - fCosOuter));
+    float fSpotAttenuation = saturate((fCos - fCosOuter) / (fCosInner - fCosOuter));
     float fAttenuationFactor = fSpotAttenuation * radiusAttenuation * distanceAttenuation;
     return float4(lit * fAttenuationFactor * gLights[nIndex].m_fIntensity, 1.0f);
 }
