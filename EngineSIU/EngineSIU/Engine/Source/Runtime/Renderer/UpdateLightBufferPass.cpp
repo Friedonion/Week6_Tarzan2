@@ -96,7 +96,24 @@ void FUpdateLightBufferPass::Render(const std::shared_ptr<FEditorViewportClient>
 
         } else if (USpotLightComponent* SpotLight = Cast<USpotLightComponent>(Light))
         {
-            
+            float InnerConeRadius = SpotLight->GetAttenuationRadius() * cos( (PI - SpotLight->GetInnerAngle() * PI / 180.f) * 0.5f );
+            GEngineLoop.PrimitiveDrawBatch.AddConeToBatch(
+                SpotLight->GetWorldLocation(),
+                InnerConeRadius,
+                SpotLight->GetAttenuationRadius() * cos(SpotLight->GetInnerAngle() * PI / 180.f),
+                48,
+                FVector4(1.f, 1.f, 1.f, 1.f),
+                SpotLight->GetRotationMatrix()
+                );
+            float OuterConeRadius = SpotLight->GetAttenuationRadius() * cos( (PI - SpotLight->GetOuterAngle() * PI / 180.f) * 0.5f );
+            GEngineLoop.PrimitiveDrawBatch.AddConeToBatch(
+                SpotLight->GetWorldLocation(),
+                OuterConeRadius,
+                SpotLight->GetAttenuationRadius() * cos(SpotLight->GetOuterAngle() * PI / 180.f),
+                48,
+                FVector4(1.f, 1.f, 1.f, 1.f),
+                SpotLight->GetRotationMatrix()
+                );
         }
     }
 
