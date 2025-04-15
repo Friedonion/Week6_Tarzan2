@@ -36,6 +36,11 @@ void SLevelEditor::Initialize()
     bInitialize = true;
     // level 시작될 때 viewmode load에 따른 렌더링 모드 변경
     FEngineLoop::Renderer.ChangeViewMode(ActiveViewportClient->GetViewMode());
+
+    //for (const auto Viewport : ViewportClients)
+    //{
+    //    FEngineLoop::Renderer.ChangeViewMode(Viewport->GetViewMode());
+    //}
 }
 
 void SLevelEditor::Tick(double deltaTime)

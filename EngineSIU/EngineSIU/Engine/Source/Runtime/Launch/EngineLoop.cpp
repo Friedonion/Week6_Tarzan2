@@ -11,8 +11,14 @@
 #include "D3D11RHI/GraphicDevice.h"
 #include "D3D11RHI/DXDShaderManager.h"
 #include "Renderer/StaticMeshRenderPass.h"
+#include "Renderer/BillboardRenderPass.h"
+#include "Renderer/DepthBufferDebugPass.h"
+#include "Renderer/FogRenderPass.h"
+#include "Renderer/GizmoRenderPass.h"
+#include "Renderer/LineRenderPass.h"
 #include "Engine/EditorEngine.h"
-
+#include <atomic>
+#include <thread>
 
 extern LRESULT ImGui_ImplWin32_WndProcHandler(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
@@ -97,6 +103,7 @@ UPrimitiveDrawBatch FEngineLoop::PrimitiveDrawBatch;
 FResourceMgr FEngineLoop::ResourceManager;
 uint32 FEngineLoop::TotalAllocationBytes = 0;
 uint32 FEngineLoop::TotalAllocationCount = 0;
+std::atomic<bool> g_bShaderThreadExit(false);
 
 FEngineLoop::FEngineLoop()
     : hWnd(nullptr)
@@ -178,6 +185,8 @@ void FEngineLoop::Tick()
     LARGE_INTEGER startTime, endTime;
     double elapsedTime = 0.0;
 
+    std::thread hotReloadThread(&FEngineLoop::HotReloadShader, this, L"Shaders");
+
     while (bIsExit == false)
     {
         QueryPerformanceCounter(&startTime);
@@ -212,9 +221,21 @@ void FEngineLoop::Tick()
         GUObjectArray.ProcessPendingDestroyObjects();
 
         GraphicDevice.SwapBuffer();
-        
-        //HotReloadShader(L"Shaders");
 
+        // 쉐이더 파일 변경 감지, 핫 리로드
+        if (bShaderChanged)
+        {
+            Renderer.ShaderManager->ReleaseAllShader();
+            Renderer.StaticMeshRenderPass->CreateShader();
+            Renderer.BillboardRenderPass->CreateShader();
+            Renderer.GizmoRenderPass->CreateShader();
+            Renderer.DepthBufferDebugPass->CreateShader();
+            Renderer.FogRenderPass->CreateShader();
+            Renderer.LineRenderPass->CreateShader();
+            Renderer.ChangeViewMode(LevelEditor->GetActiveViewportClient()->GetViewMode());
+            bShaderChanged = false;
+        }
+        
         do
         {
             Sleep(0);
@@ -222,6 +243,10 @@ void FEngineLoop::Tick()
             elapsedTime = (endTime.QuadPart - startTime.QuadPart) * 1000.f / frequency.QuadPart;
         } while (elapsedTime < targetFrameTime);
     }
+
+    // 메인스레드 종료전에 파일 탐색 스레드 종료
+    g_bShaderThreadExit = true;
+    hotReloadThread.join();
 }
 
 float FEngineLoop::GetAspectRatio(IDXGISwapChain* swapChain) const
@@ -258,7 +283,7 @@ void FEngineLoop::HotReloadShader(const std::wstring& dir)
     HANDLE hChange = FindFirstChangeNotificationW(
         dir.c_str(),
         TRUE,   // 하위 디렉토리 포함
-        FILE_NOTIFY_CHANGE_FILE_NAME | FILE_NOTIFY_CHANGE_DIR_NAME | FILE_NOTIFY_CHANGE_SIZE
+        FILE_NOTIFY_CHANGE_FILE_NAME | FILE_NOTIFY_CHANGE_DIR_NAME | FILE_NOTIFY_CHANGE_SIZE | FILE_NOTIFY_CHANGE_LAST_WRITE
     );
 
     if (hChange == INVALID_HANDLE_VALUE)
@@ -269,17 +294,16 @@ void FEngineLoop::HotReloadShader(const std::wstring& dir)
 
     std::wcout << L"Monitoring directory with FindFirstChangeNotification: " << dir << std::endl;
 
-    while (true)
+    while (!g_bShaderThreadExit.load())
     {
         // 변경 이벤트가 발생할 때까지 대기
-        DWORD waitStatus = WaitForSingleObject(hChange, INFINITE);
+        DWORD waitStatus = WaitForSingleObject(hChange, 1000);
         if (waitStatus == WAIT_OBJECT_0)
         {
             std::wcout << L"Directory change detected!" << std::endl;
 
             // 쉐이더 리로드
-            Renderer.ShaderManager->ReleaseAllShader();
-            Renderer.StaticMeshRenderPass->CreateShader();
+            bShaderChanged = true;
 
             // 변경 이벤트 핸들을 재설정
             if (!FindNextChangeNotification(hChange))
@@ -287,6 +311,10 @@ void FEngineLoop::HotReloadShader(const std::wstring& dir)
                 std::wcerr << L"FindNextChangeNotification failed: " << GetLastError() << std::endl;
                 break;
             }
+        }
+        else if (waitStatus == WAIT_TIMEOUT)
+        {
+            continue;
         }
         else
         {

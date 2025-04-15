@@ -102,8 +102,6 @@ PS_OUTPUT mainPS(PS_INPUT input)
 
     float3 normalWS = input.TBN[2].xyz;
 
- 
-    
     if (HasBumpTexture) // 노말맵이 유효한 경우
     {
         normalWS = GetNormalFromMap(input);
@@ -128,4 +126,3 @@ PS_OUTPUT mainPS(PS_INPUT input)
 
     return output;
 }
-

@@ -17,6 +17,7 @@ public:
 	FDXDShaderManager(ID3D11Device* Device);
 
 	void ReleaseAllShader();
+    void ReleaseAllStaticMeshShader();
 
 private:
 	ID3D11Device* DXDDevice;
