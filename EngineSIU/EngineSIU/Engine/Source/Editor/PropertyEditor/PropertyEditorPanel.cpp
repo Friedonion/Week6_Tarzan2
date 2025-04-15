@@ -119,6 +119,7 @@ void PropertyEditorPanel::Render()
                     [&](FLinearColor c) { lightObj->SetDiffuseColor(c); });
 
                     UBillboardComponent* billComp = Cast<UBillboardComponent>(lightObj->GetOwner()->GetRootComponent());
+                    if(billComp)
                     billComp->SetColor(lightObj->GetDiffuseColor());
 
                 DrawColorProperty("Specular Color",
@@ -148,27 +149,29 @@ void PropertyEditorPanel::Render()
                     lightObj->SetAttenuationRadius(AttenuationRadius);
                 }
 
-                float InnerAngle = lightObj->GetInnerAngle();
-                float OuterAngle = lightObj->GetOuterAngle();
-
-                bool innerChanged = ImGui::SliderFloat("InnerAngle", &InnerAngle, 0.01f, 90.0f, "%.1f");
-                bool outerChanged = ImGui::SliderFloat("OuterAngle", &OuterAngle, 0.01f, 90.0f, "%.1f");
-
-                if (innerChanged || outerChanged)
+                if (Cast<USpotLightComponent>(lightObj))
                 {
-                    // 먼저 Inner과 Outer 간의 관계를 정리
-                    if (InnerAngle > OuterAngle)
+                    float InnerAngle = lightObj->GetInnerAngle();
+                    float OuterAngle = lightObj->GetOuterAngle();
+
+                    bool innerChanged = ImGui::SliderFloat("InnerAngle", &InnerAngle, 0.01f, 90.0f, "%.1f");
+                    bool outerChanged = ImGui::SliderFloat("OuterAngle", &OuterAngle, 0.01f, 90.0f, "%.1f");
+
+                    if (innerChanged || outerChanged)
                     {
-                        if (innerChanged && !outerChanged)
-                            OuterAngle = InnerAngle;
-                        else
-                            InnerAngle = OuterAngle;
+                        // 먼저 Inner과 Outer 간의 관계를 정리
+                        if (InnerAngle > OuterAngle)
+                        {
+                            if (innerChanged && !outerChanged)
+                                OuterAngle = InnerAngle;
+                            else
+                                InnerAngle = OuterAngle;
+                        }
+
+                        lightObj->SetInnerAngle(InnerAngle);
+                        lightObj->SetOuterAngle(OuterAngle);
                     }
-
-                    lightObj->SetInnerAngle(InnerAngle);
-                    lightObj->SetOuterAngle(OuterAngle);
                 }
-
                 ImGui::TreePop();
             }
 

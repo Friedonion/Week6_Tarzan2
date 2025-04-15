@@ -27,7 +27,7 @@ ADirectionLight::ADirectionLight()
     DirectionLightComponent = AddComponent<UDirLightComponent>();
     BillboardComponent = AddComponent<UBillboardComponent>();
     RootComponent = BillboardComponent;
-    BillboardComponent->SetTexture(L"Assets/Editor/Icon/PointLight_64x.png");
+    BillboardComponent->SetTexture(L"Assets/Editor/Icon/DirectionalLight_64x.png");
     DirectionLightComponent->AttachToComponent(RootComponent);
 
 
@@ -44,7 +44,7 @@ ASpotLight::ASpotLight()
     SpotLightComponent = AddComponent<USpotLightComponent>();
     BillboardComponent = AddComponent<UBillboardComponent>();
     RootComponent = BillboardComponent;
-    BillboardComponent->SetTexture(L"Assets/Editor/Icon/PointLight_64x.png");
+    BillboardComponent->SetTexture(L"Assets/Editor/Icon/SpotLight_64x.png");
     SpotLightComponent->AttachToComponent(RootComponent);
 
     SpotLightComponent->SetDiffuseColor(FLinearColor(1.f, 1.f, 1.f, 1.f));
