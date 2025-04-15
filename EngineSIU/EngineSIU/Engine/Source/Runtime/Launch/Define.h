@@ -86,7 +86,7 @@ struct FObjMaterialInfo
     FVector Ambient;   // Ka : Ambient (Vector)
     FVector Emissive;  // Ke : Emissive (Vector)
 
-    float SpecularScalar; // Ns : Specular Power (Float)
+    float SpecularScalar =500.0f; // Ns : Specular Power (Float)
     float DensityScalar;  // Ni : Optical Density (Float)
     float TransparencyScalar; // d or Tr  : Transparency of surface (Float)
 
@@ -406,6 +406,10 @@ struct FScreenConstants
     FVector2D Padding;      // 정렬용 (사용 안 해도 무방)
 };
 
+struct FBillLightConstant
+{
+    FLinearColor lightColor;
+};
 
 struct FFogConstants
 {

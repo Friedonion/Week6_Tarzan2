@@ -33,6 +33,10 @@ public:
     void PrepareTextureShader() const;
     void PrepareSubUVConstant() const;
 
+    void PrePareBillLightConstant() const;
+
+    void UpdateBillLightConstant(FLinearColor color);
+
     // 상수 버퍼 업데이트 함수
     void UpdateSubUVConstant(FVector2D uvOffset, FVector2D uvScale) const;
     

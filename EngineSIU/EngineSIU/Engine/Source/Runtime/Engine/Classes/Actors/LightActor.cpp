@@ -12,9 +12,10 @@ APointLight::APointLight()
     RootComponent = BillboardComponent;
 
     BillboardComponent->SetTexture(L"Assets/Editor/Icon/PointLight_64x.png");
-
     PointLightComponent->AttachToComponent(RootComponent);
-
+ 
+    PointLightComponent->SetDiffuseColor(FLinearColor(1.f, 1.f, 1.f, 1.f));
+    BillboardComponent->SetColor(FLinearColor(1.f, 1.f, 1.f, 1.f));
 }
 
 APointLight::~APointLight()
@@ -28,6 +29,10 @@ ADirectionLight::ADirectionLight()
     RootComponent = BillboardComponent;
     BillboardComponent->SetTexture(L"Assets/Editor/Icon/PointLight_64x.png");
     DirectionLightComponent->AttachToComponent(RootComponent);
+
+
+    DirectionLightComponent->SetDiffuseColor(FLinearColor(1.f, 1.f, 1.f, 1.f));
+    BillboardComponent->SetColor(FLinearColor(1.f, 1.f, 1.f, 1.f));
 }
 
 ADirectionLight::~ADirectionLight()
@@ -41,6 +46,9 @@ ASpotLight::ASpotLight()
     RootComponent = BillboardComponent;
     BillboardComponent->SetTexture(L"Assets/Editor/Icon/PointLight_64x.png");
     SpotLightComponent->AttachToComponent(RootComponent);
+
+    SpotLightComponent->SetDiffuseColor(FLinearColor(1.f, 1.f, 1.f, 1.f));
+    BillboardComponent->SetColor(FLinearColor(1.f, 1.f, 1.f, 1.f));
 }
 
 ASpotLight::~ASpotLight()

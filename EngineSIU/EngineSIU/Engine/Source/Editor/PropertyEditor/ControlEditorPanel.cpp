@@ -311,6 +311,7 @@ void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
                 {
                     APointLight* LightActor = World->SpawnActor<APointLight>();
                     LightActor->SetActorLabel(TEXT("OBJ_PointLight"));
+
                     break;
                 }
                 case OBJ_SpotLight:
@@ -450,10 +451,10 @@ void ControlEditorPanel::CreateFlagButton() const
 
     ImGui::SameLine();
 
-    const char* ViewModeNames[] = { "Lit_Gouraud", "Lit_Lambert", "Lit_Specular", "Lit_Phong", "Unlit", "Wireframe", "SceneDepth", };
+    const char* ViewModeNames[] = { "Lit_Gouraud", "Lit_Lambert", "Lit_Specular", "Lit_Phong", "Unlit", "Wireframe", "SceneDepth","Normal"};
     
     int rawViewMode = (int)ActiveViewport->GetViewMode();
-    int safeIndex = (rawViewMode >= 0) ? (rawViewMode % 6) : 0;
+    int safeIndex = (rawViewMode >= 0) ? (rawViewMode % 8) : 0;
     FString ViewModeControl = ViewModeNames[safeIndex];
 
     ImVec2 ViewModeTextSize = ImGui::CalcTextSize(GetData(ViewModeControl));

@@ -11,6 +11,8 @@ class UBillboardComponent : public UPrimitiveComponent
 
 public:
     UBillboardComponent();
+    void SetColor(FLinearColor Color);
+    FLinearColor GetColor();
     virtual ~UBillboardComponent();
     virtual UObject* Duplicate(UObject* InOuter) override;
     virtual void InitializeComponent() override;
@@ -25,7 +27,8 @@ public:
     void SetUUIDParent(USceneComponent* _parent);
     FMatrix CreateBillboardMatrix() const;
     FString GetBufferKey();
-
+ 
+    FLinearColor Color;
     float finalIndexU = 0.0f;
     float finalIndexV = 0.0f;
     std::shared_ptr<FTexture> Texture;

@@ -23,7 +23,7 @@ private:
 
 public:
 	HRESULT AddVertexShader(const std::wstring& Key, const std::wstring& FileName);
-	HRESULT AddVertexShader(const std::wstring& Key, const std::wstring& FileName, const std::string& EntryPoint);
+	HRESULT AddVertexShader(const std::wstring& Key, const std::wstring& FileName, const std::string& EntryPoint, const D3D_SHADER_MACRO* Macros={});
 	HRESULT AddInputLayout(const std::wstring& Key, const D3D11_INPUT_ELEMENT_DESC* Layout, uint32_t LayoutSize);
 
 	

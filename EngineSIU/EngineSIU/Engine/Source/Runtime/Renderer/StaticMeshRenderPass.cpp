@@ -71,6 +71,8 @@ void FStaticMeshRenderPass::CreateShader()
 
     Defines[0] = { "LIGHTING_MODEL_GOURAUD", "1" };
     hr = ShaderManager->AddPixelShader(L"StaticMeshPixelShaderGouraud", L"Shaders/StaticMeshPixelShader.hlsl", "mainPS", Defines);
+    ShaderManager->AddVertexShader(L"StaticMeshVertexShaderGouraud", L"Shaders/StaticMeshVertexShader.hlsl", "mainVS", Defines);
+    //ShaderManager->AddVertexShaderAndInputLayout(L"StaticMeshVertexShader", L"Shaders/StaticMeshVertexShader.hlsl", "mainVS", StaticMeshLayoutDesc, ARRAYSIZE(StaticMeshLayoutDesc));
 
     Defines[0] = { "LIGHTING_MODEL_LAMBERT", "1" };
     hr = ShaderManager->AddPixelShader(L"StaticMeshPixelShaderLambert", L"Shaders/StaticMeshPixelShader.hlsl", "mainPS", Defines);
@@ -80,6 +82,9 @@ void FStaticMeshRenderPass::CreateShader()
 
     Defines[0] = { "LIGHTING_MODEL_BLINNPHONG", "1" };
     hr = ShaderManager->AddPixelShader(L"StaticMeshPixelShaderBlinnPhong", L"Shaders/StaticMeshPixelShader.hlsl", "mainPS", Defines);
+    
+    Defines[0] = { "LIGHTING_MODEL_NORMAL", "1" };
+    hr = ShaderManager->AddPixelShader(L"StaticMeshPixelShaderNormal", L"Shaders/StaticMeshPixelShader.hlsl", "mainPS", Defines);
 
     Defines[0] = { "LIGHTING_MODEL_UNLIT", "1" };
     hr = ShaderManager->AddPixelShader(L"StaticMeshPixelShaderUnlit", L"Shaders/StaticMeshPixelShader.hlsl", "mainPS", Defines);
@@ -98,6 +103,7 @@ void FStaticMeshRenderPass::ChangeViewMode(EViewModeIndex evi)
     {
     case EViewModeIndex::VMI_Lit_Gouraud:
         PixelShader = ShaderManager->GetPixelShaderByKey(L"StaticMeshPixelShaderGouraud");
+        VertexShader = ShaderManager->GetVertexShaderByKey(L"StaticMeshVertexShaderGouraud");
         break;
     case EViewModeIndex::VMI_Lit_Lambert:
         PixelShader = ShaderManager->GetPixelShaderByKey(L"StaticMeshPixelShaderLambert");
@@ -107,6 +113,9 @@ void FStaticMeshRenderPass::ChangeViewMode(EViewModeIndex evi)
         break;
     case EViewModeIndex::VMI_Lit_BlinnPhong:
         PixelShader = ShaderManager->GetPixelShaderByKey(L"StaticMeshPixelShaderBlinnPhong");
+        break;
+    case EViewModeIndex::VMI_Normal:
+        PixelShader = ShaderManager->GetPixelShaderByKey(L"StaticMeshPixelShaderNormal");
         break;
     case EViewModeIndex::VMI_Wireframe:
     case EViewModeIndex::VMI_Unlit:
@@ -145,8 +154,13 @@ void FStaticMeshRenderPass::PrepareRenderState() const
     // 상수 버퍼 바인딩 예시
     ID3D11Buffer* PerObjectBuffer = BufferManager->GetConstantBuffer(TEXT("FPerObjectConstantBuffer"));
     ID3D11Buffer* CameraConstantBuffer = BufferManager->GetConstantBuffer(TEXT("FCameraConstantBuffer"));
+    ID3D11Buffer* LightBuffer = BufferManager->GetConstantBuffer(TEXT("FLightBuffer"));
+    ID3D11Buffer* MaterialBuffer = BufferManager->GetConstantBuffer(TEXT("FMaterialConstants"));
+  
     Graphics->DeviceContext->VSSetConstantBuffers(0, 1, &PerObjectBuffer);
     Graphics->DeviceContext->VSSetConstantBuffers(1, 1, &CameraConstantBuffer);
+    Graphics->DeviceContext->VSSetConstantBuffers(2, 1, &LightBuffer);
+    Graphics->DeviceContext->VSSetConstantBuffers(3, 1, &MaterialBuffer);
 
     TArray<FString> PSBufferKeys = {
                                   TEXT("FCameraConstantBuffer"),

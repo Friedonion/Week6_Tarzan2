@@ -118,6 +118,9 @@ void PropertyEditorPanel::Render()
                     [&]() { return lightObj->GetDiffuseColor(); },
                     [&](FLinearColor c) { lightObj->SetDiffuseColor(c); });
 
+                    UBillboardComponent* billComp = Cast<UBillboardComponent>(lightObj->GetOwner()->GetRootComponent());
+                    billComp->SetColor(lightObj->GetDiffuseColor());
+
                 DrawColorProperty("Specular Color",
                     [&]() { return lightObj->GetSpecularColor(); },
                     [&](FLinearColor c) { lightObj->SetSpecularColor(c); });
@@ -146,16 +149,26 @@ void PropertyEditorPanel::Render()
                 }
 
                 float InnerAngle = lightObj->GetInnerAngle();
-                if (ImGui::SliderFloat("InnerAngle", &InnerAngle, 0.01f, 90.0f, "%.1f"))
-                {
-                    lightObj->SetInnerAngle(InnerAngle);
-                }
-
                 float OuterAngle = lightObj->GetOuterAngle();
-                if (ImGui::SliderFloat("OuterAngle", &OuterAngle, 0.01f, 90.0f, "%.1f"))
+
+                bool innerChanged = ImGui::SliderFloat("InnerAngle", &InnerAngle, 0.01f, 90.0f, "%.1f");
+                bool outerChanged = ImGui::SliderFloat("OuterAngle", &OuterAngle, 0.01f, 90.0f, "%.1f");
+
+                if (innerChanged || outerChanged)
                 {
+                    // 먼저 Inner과 Outer 간의 관계를 정리
+                    if (InnerAngle > OuterAngle)
+                    {
+                        if (innerChanged && !outerChanged)
+                            OuterAngle = InnerAngle;
+                        else
+                            InnerAngle = OuterAngle;
+                    }
+
+                    lightObj->SetInnerAngle(InnerAngle);
                     lightObj->SetOuterAngle(OuterAngle);
                 }
+
                 ImGui::TreePop();
             }
 
