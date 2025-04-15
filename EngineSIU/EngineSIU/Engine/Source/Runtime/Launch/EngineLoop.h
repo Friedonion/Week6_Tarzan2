@@ -29,6 +29,8 @@ public:
     void Tick();
     void Exit();
     float GetAspectRatio(IDXGISwapChain* swapChain) const;
+    void Input();
+    void HotReloadShader(const std::wstring& dir);
 
 private:
     void WindowInit(HINSTANCE hInstance);
@@ -56,6 +58,8 @@ private:
 
     bool bIsExit = false;
     const int32 targetFPS = 60;
+    bool bTestInput = false;
+    bool bShaderChanged = false;
 
 public:
     SLevelEditor* GetLevelEditor() const { return LevelEditor; }
