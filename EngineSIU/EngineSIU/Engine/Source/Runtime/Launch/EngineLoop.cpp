@@ -186,27 +186,6 @@ float FEngineLoop::GetAspectRatio(IDXGISwapChain* swapChain) const
     return static_cast<float>(desc.BufferDesc.Width) / static_cast<float>(desc.BufferDesc.Height);
 }
 
-void FEngineLoop::Input()
-{
-    if (GetAsyncKeyState('M') & 0x8000)
-    {
-        if (!bTestInput)
-        {
-            bTestInput = true;
-            if (LevelEditor->IsMultiViewport())
-            {
-                LevelEditor->OffMultiViewport();
-            }
-            else
-                LevelEditor->OnMultiViewport();
-        }
-    }
-    else
-    {
-        bTestInput = false;
-    }
-}
-
 void FEngineLoop::HotReloadShader(const std::wstring& dir)
 {
     // 감시할 디렉토리의 변경 이벤트 핸들 얻기
