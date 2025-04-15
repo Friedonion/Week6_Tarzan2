@@ -37,12 +37,6 @@ void SLevelEditor::Initialize()
     HSplitter->Initialize(FRect(EditorWidth * 0.5f - 10, 0.0f, 20, EditorWidth));
     HSplitter->OnDrag(FPoint(0, 0));
     LoadConfig();
-    // level 시작될 때 viewmode load에 따른 렌더링 모드 변경
-    FEngineLoop::Renderer.ChangeViewMode(ActiveViewportClient->GetViewMode());
-    //for (const auto Viewport : ViewportClients)
-    //{
-    //    FEngineLoop::Renderer.ChangeViewMode(Viewport->GetViewMode());
-    //}
 
     SetEnableMultiViewport(bMultiViewportMode);
     ResizeLevelEditor();

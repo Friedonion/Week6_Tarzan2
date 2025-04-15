@@ -162,7 +162,6 @@ void FEngineLoop::Tick()
             Renderer.DepthBufferDebugPass->CreateShader();
             Renderer.FogRenderPass->CreateShader();
             Renderer.LineRenderPass->CreateShader();
-            Renderer.ChangeViewMode(LevelEditor->GetActiveViewportClient()->GetViewMode());
             bShaderChanged = false;
         }
         

@@ -123,13 +123,13 @@ void FRenderer::Render(const std::shared_ptr<FEditorViewportClient>& ActiveViewp
     Graphics->DeviceContext->RSSetViewports(1, &ActiveViewport->GetD3DViewport());
 
     Graphics->ChangeRasterizer(ActiveViewport->GetViewMode());
+    ChangeViewMode(ActiveViewport->GetViewMode());
 
     FFrustrum::Get().UpdateFrustrum(ActiveViewport->GetViewMatrix() * ActiveViewport->GetProjectionMatrix());
 
     StaticMeshRenderPass->Render(ActiveViewport);
     UpdateLightBufferPass->Render(ActiveViewport);
     BillboardRenderPass->Render(ActiveViewport);
-    
 
     if (IsSceneDepth)
     {
