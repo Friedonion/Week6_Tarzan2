@@ -2,6 +2,9 @@
 
 Texture2D Textures : register(t0);
 Texture2D NormalTextures : register(t1);
+Texture2D MetallicTextures : register(t2);
+Texture2D SpecularTextures : register(t3);
+Texture2D EmessiveTextures : register(t4);
 SamplerState Sampler : register(s0);
 
 
@@ -33,7 +36,7 @@ struct FMaterial
     float SpecularScalar;
     
     float3 EmissiveColor;
-    int TextureInfo; // 0b0001: Diffuse, 0b0010: Ambient, 0b0100: Specular, 0b1000: Bump
+    int TextureInfo; // 0b0001: Diffuse, 0b0010: Ambient, 0b0100: Specular, 0b1000: Bump,0b10000: metallic, 0b100000: Emissive
 };
 cbuffer MaterialConstants : register(b3)
 {
@@ -66,6 +69,7 @@ struct PS_INPUT
     int materialIndex : MATERIAL_INDEX; // 머티리얼 인덱스
     float3x3 TBN : TANGENT; // 탄젠트 공간 (tangent, bitangent, normal)
     float4 GouraudColor : COLOR2; // 구로우드 색상
+    float4 GouraudSpecular : COLOR3; // 구로우드 스펙큘러 색상
 };
 
 struct PS_OUTPUT
@@ -92,40 +96,88 @@ PS_OUTPUT mainPS(PS_INPUT input)
     PS_OUTPUT output;
     output.UUID = UUID;
 
+    // 기본 색상 처리 (알베도)
     float3 albedo = Textures.Sample(Sampler, input.texcoord).rgb;
-    float3 matDiffuse = Material.DiffuseColor.rgb;
-    bool hasTexture = any(albedo != float3(0, 0, 0));
-    float3 baseColor = hasTexture ? albedo : matDiffuse;
-    
     bool HasDiffuseTexture = (Material.TextureInfo & 0x1) != 0;
+    bool HasSpecularTexture = (Material.TextureInfo & 0x4) != 0;  
     bool HasBumpTexture = (Material.TextureInfo & 0x8) != 0;
-
-    float3 normalWS = input.TBN[2].xyz;
-
- 
+    bool HasMetallicTexture = (Material.TextureInfo & 0x10) != 0;
+    bool HasEmissiveTexture = (Material.TextureInfo & 0x20) != 0;
     
-    if (HasBumpTexture) // 노말맵이 유효한 경우
+    
+    float3 baseColor = HasDiffuseTexture ? albedo : Material.DiffuseColor;
+    float3 normalWS = input.TBN[2];
+    
+    
+    if (HasBumpTexture)
     {
         normalWS = GetNormalFromMap(input);
     }
 
 #if LIGHTING_MODEL_UNLIT
-    output.color = float4(baseColor, 1);
+    output.color = float4(baseColor, 1.0f);
+
 #elif LIGHTING_MODEL_NORMAL
-    output.color = float4(normalWS*0.5+0.5, 1);
+    output.color = float4(normalWS * 0.5f + 0.5f, 1.0f);
+
 #elif LIGHTING_MODEL_GOURAUD
-    output.color = float4(input.GouraudColor.xyz * baseColor , 1);
-#else  
-    float3 lightRgb = Lighting(input.worldPos, normalWS).rgb;
-    float3 litColor = baseColor * lightRgb;
-    output.color = float4(litColor, 1);
+{
+    float3 gouraudDiffuse = input.GouraudColor.rgb * baseColor;
+    float3 gouraudSpecular = input.GouraudSpecular.rgb;
+
+    float3 litColor = gouraudDiffuse + gouraudSpecular;
+
+    // Emissive 적용
+    float3 emissive = Material.EmissiveColor;
+    if (HasEmissiveTexture)
+    {
+        emissive += EmessiveTextures.Sample(Sampler, input.texcoord).rgb;
+    }
+
+    output.color = float4(litColor + emissive, 1.0f);
+}
+
+
+
+#else 
+    LightingResult lighting = Lighting(input.worldPos, normalWS);
+
+    float specularFactor = Material.SpecularScalar;
+    if (HasSpecularTexture)
+    {
+        float texSpec = SpecularTextures.Sample(Sampler, input.texcoord).r;
+        specularFactor *= texSpec;
+    }
+
+    float3 lightRgb = lighting.Diffuse + lighting.Specular * specularFactor;
+
+    // Metallic 텍스처 적용
+    float metallic = 0.0f;
+    if (HasMetallicTexture)
+    {
+        metallic = MetallicTextures.Sample(Sampler, input.texcoord).r;
+    }
+
+    // Emissive 텍스처 적용
+    float3 emissive = Material.EmissiveColor;
+    if (HasEmissiveTexture)
+    {
+        emissive += EmessiveTextures.Sample(Sampler, input.texcoord).rgb;
+    }
+
+    //metalic 적용
+    float3 litColor = lerp(baseColor * lightRgb, lightRgb, metallic);
+    litColor += emissive;
+
+    output.color = float4(litColor, 1.0f);
 #endif
 
     if (isSelected)
     {
-        output.color += float4(0.02, 0.02, 0.02, 1);
+        output.color += float4(0.02f, 0.02f, 0.02f, 0.0f);
     }
 
     return output;
 }
+
 
