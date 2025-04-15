@@ -98,7 +98,6 @@ void FStaticMeshRenderPass::ReleaseShader()
 
 void FStaticMeshRenderPass::ChangeViewMode(EViewModeIndex evi)
 {
-    D3D_SHADER_MACRO Defines[2];
     switch (evi)
     {
     case EViewModeIndex::VMI_Lit_Gouraud:

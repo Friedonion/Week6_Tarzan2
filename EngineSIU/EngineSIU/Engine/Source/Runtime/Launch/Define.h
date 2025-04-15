@@ -11,12 +11,9 @@
 #include "Math/Matrix.h"
 
 
-#define UE_LOG Console::GetInstance().AddLog
-
 #define _TCHAR_DEFINED
 #include <d3d11.h>
 
-#include "UserInterface/Console.h"
 #include <Math/Color.h>
 
 struct FStaticMeshVertex
@@ -96,8 +93,8 @@ struct FObjMaterialInfo
     FString DiffuseTextureName;  // map_Kd : Diffuse texture
     FWString DiffuseTexturePath;
 
-    FString AmbientTextureName;  // map_Ka : Ambient texture
-    FWString AmbientTexturePath;
+    FString MetallicTextureName;  // map_refl : Metallic texture
+    FWString MetallicTexturePath;
 
     FString SpecularTextureName; // map_Ks : Specular texture
     FWString SpecularTexturePath;
@@ -107,6 +104,9 @@ struct FObjMaterialInfo
 
     FString AlphaTextureName;    // map_d : Alpha texture
     FWString AlphaTexturePath;
+
+    FString EmissiveTextureName; // map_Ke : Emissive texture
+    FWString EmissiveTexturePath;
 
     int TextureInfo = 0;
 //FString DisplacementTextureName; // map_disp : Displacement texture
@@ -432,7 +432,9 @@ enum ETextureType
     TEXTURE_Diffuse = 1 << 0, // 0b0001
     TEXTURE_Ambient = 1 << 1, // 0b0010
     TEXTURE_Specular = 1 << 2, // 0b0100
-    TEXTURE_Bump = 1 << 3  // 0b1000
+    TEXTURE_Bump = 1 << 3,  // 0b1000
+    TEXTURE_Metallic = 1 << 4, // 0b10000
+    TEXTURE_Emissive = 1 << 5, // 0b100000
 };
 
 

@@ -29,6 +29,13 @@ struct LIGHT
     float3 LightPad;
 };
 
+struct LightingResult
+{
+    float3 Diffuse;
+    float3 Specular;
+};
+
+
 cbuffer cbLights : register(b2)
 {
     LIGHT gLights[MAX_LIGHTS];
@@ -62,72 +69,68 @@ float BlinnPhongLightingModel(float3 vToLight, float3 vPosition, float3 vNormal,
 }
 
 
-float4 CalculateDirLight(int nIndex, float3 vPosition, float3 vNormal)
+LightingResult CalculateDirLight(int nIndex, float3 vPosition, float3 vNormal)
 {
+    LightingResult result = (LightingResult) 0;
     float3 vToLight = normalize(-gLights[nIndex].m_vDirection);
-    float3 vView = normalize(CameraPosition - vPosition);
-    
-    float3 ambientLight = gcGlobalAmbientLight * Material.AmbientColor.rgb;
-    float3 lit = ambientLight;
-    
+
     if (dot(vNormal, vToLight) < 0.0f)
-        return float4(lit, 1.0f);
+        return result;
 
-    #if LIGHTING_MODEL_GOURAUD ||LIGHTING_MODEL_BLINNPHONG
-    float3 safeDiffuse = (length(Material.DiffuseColor) < 0.001f)  ? float3(1,1,1)  : Material.DiffuseColor;
-    lit = ambientLight +
-        gLights[nIndex].m_cDiffuse.rgb * LambertLightingModel(vToLight, vNormal) * safeDiffuse +
-        gLights[nIndex].m_cSpecular.rgb * BlinnPhongLightingModel(vToLight, vPosition, vNormal, Material.SpecularScalar) * Material.SpecularColor;
+    float3 safeDiffuse = (length(Material.DiffuseColor) < 0.001f) ? float3(1, 1, 1) : Material.DiffuseColor;
+
+#if LIGHTING_MODEL_GOURAUD || LIGHTING_MODEL_BLINNPHONG
+        result.Diffuse = gLights[nIndex].m_cDiffuse.rgb * LambertLightingModel(vToLight, vNormal) * safeDiffuse;
+        result.Specular = gLights[nIndex].m_cSpecular.rgb * BlinnPhongLightingModel(vToLight, vPosition, vNormal, Material.SpecularScalar) * Material.SpecularColor;
 #elif LIGHTING_MODEL_LAMBERT
-    // float4 baseColor = hasTexture ? albedo : float4(1, 1, 1, 1);
-    float3 safeDiffuse = (length(Material.DiffuseColor) < 0.001f)  ? float3(1,1,1)  : Material.DiffuseColor;
-    lit = ambientLight + gLights[nIndex].m_cDiffuse.rgb * LambertLightingModel(vToLight, vNormal) * safeDiffuse;
+        result.Diffuse = gLights[nIndex].m_cDiffuse.rgb * LambertLightingModel(vToLight, vNormal) * safeDiffuse;
 #elif LIGHTING_MODEL_SPECULAR
-    lit = ambientLight + gLights[nIndex].m_cSpecular.rgb * BlinnPhongLightingModel(vToLight, vPosition, vNormal, Material.SpecularScalar) * Material.SpecularColor;
-
+        result.Specular = gLights[nIndex].m_cSpecular.rgb * BlinnPhongLightingModel(vToLight, vPosition, vNormal, Material.SpecularScalar) * Material.SpecularColor;
 #endif
-    
-    return float4(lit * gLights[nIndex].m_fIntensity, 1.0);
+
+    float intensity = gLights[nIndex].m_fIntensity;
+    result.Diffuse *= intensity;
+    result.Specular *= intensity;
+
+    return result;
 }
 
-float4 CalculatePointLight(int nIndex, float3 vPosition, float3 vNormal)
+
+LightingResult CalculatePointLight(int nIndex, float3 vPosition, float3 vNormal)
 {
+    LightingResult result = (LightingResult) 0;
     float3 vToLight = gLights[nIndex].m_vPosition - vPosition;
     float fDistance = length(vToLight);
-
-    // 감쇠 반경을 벗어나면 기여하지 않음
     if (fDistance > gLights[nIndex].m_fAttRadius)
-        return float4(0.0f, 0.0f, 0.0f, 1.0f);
+        return result;
 
+    vToLight /= fDistance;
     if (dot(vNormal, vToLight) < 0.0f)
-        return float4(0.0f, 0.0f, 0.0f, 1.0f);
-
-    vToLight /= fDistance; // 정규화    
-    float3 ambientLight = gcGlobalAmbientLight * Material.AmbientColor.rgb;
-    float3 lit;
-
-    #if LIGHTING_MODEL_GOURAUD || LIGHTING_MODEL_BLINNPHONG
-        float3 safeDiffuse = (length(Material.DiffuseColor) < 0.001f)  ? float3(1,1,1)  : Material.DiffuseColor;
-    lit = ambientLight +
-        gLights[nIndex].m_cDiffuse.rgb * LambertLightingModel(vToLight, vNormal) * safeDiffuse +
-        gLights[nIndex].m_cSpecular.rgb * BlinnPhongLightingModel(vToLight, vPosition, vNormal, Material.SpecularScalar) * Material.SpecularColor;
-#elif LIGHTING_MODEL_LAMBERT
-    // float4 baseColor = hasTexture ? albedo : float4(1, 1, 1, 1);
-    float3 safeDiffuse = (length(Material.DiffuseColor) < 0.001f)  ? float3(1,1,1)  : Material.DiffuseColor;
-    lit = ambientLight + gLights[nIndex].m_cDiffuse.rgb * LambertLightingModel(vToLight, vNormal) * safeDiffuse;
-#elif LIGHTING_MODEL_SPECULAR
-    lit = ambientLight + gLights[nIndex].m_cSpecular.rgb * BlinnPhongLightingModel(vToLight, vPosition, vNormal, Material.SpecularScalar) * Material.SpecularColor;
-#endif
+        return result;
 
     float normalizedRadius = fDistance / gLights[nIndex].m_fAttRadius;
     float distanceAttenuation = 1.0f / (1.0f + gLights[nIndex].m_fAttenuation * fDistance * fDistance);
-    float radiusAttenuation = 1 - normalizedRadius * normalizedRadius;
+    float radiusAttenuation = 1.0f - normalizedRadius * normalizedRadius;
     float fAttenuationFactor = distanceAttenuation * radiusAttenuation;
 
-    return float4(lit * fAttenuationFactor * gLights[nIndex].m_fIntensity, 1.0f);
+    float3 safeDiffuse = (length(Material.DiffuseColor) < 0.001f) ? float3(1, 1, 1) : Material.DiffuseColor;
+
+#if LIGHTING_MODEL_GOURAUD || LIGHTING_MODEL_BLINNPHONG
+        result.Diffuse = gLights[nIndex].m_cDiffuse * LambertLightingModel(vToLight, vNormal) * safeDiffuse;
+        result.Specular = gLights[nIndex].m_cSpecular * BlinnPhongLightingModel(vToLight, vPosition, vNormal, Material.SpecularScalar) * Material.SpecularColor;
+#elif LIGHTING_MODEL_LAMBERT
+        result.Diffuse = gLights[nIndex].m_cDiffuse * LambertLightingModel(vToLight, vNormal) * safeDiffuse;
+#elif LIGHTING_MODEL_SPECULAR
+        result.Specular = gLights[nIndex].m_cSpecular * BlinnPhongLightingModel(vToLight, vPosition, vNormal, Material.SpecularScalar) * Material.SpecularColor;
+#endif
+
+    result.Diffuse *= fAttenuationFactor * gLights[nIndex].m_fIntensity;
+    result.Specular *= fAttenuationFactor * gLights[nIndex].m_fIntensity;
+
+    return result;
 }
 
-float4 CalculateSpotLight(int nIndex, float3 vPosition, float3 vNormal)
+LightingResult CalculateSpotLight(int nIndex, float3 vPosition, float3 vNormal)
 {
     float3 vToLight = normalize(gLights[nIndex].m_vPosition - vPosition);
     float3 vLightDir = -normalize(gLights[nIndex].m_vDirection);
@@ -145,53 +148,53 @@ float4 CalculateSpotLight(int nIndex, float3 vPosition, float3 vNormal)
     float3 lit;
     float3 ambientLight = gcGlobalAmbientLight * Material.AmbientColor.rgb;
 
-#if LIGHTING_MODEL_GOURAUD || LIGHTING_MODEL_BLINNPHONG 
-        float3 safeDiffuse = (length(Material.DiffuseColor) < 0.001f)  ? float3(1,1,1)  : Material.DiffuseColor;
-    lit = ambientLight +
-        gLights[nIndex].m_cDiffuse.rgb * LambertLightingModel(vToLight, vNormal) * safeDiffuse +
-        gLights[nIndex].m_cSpecular.rgb * BlinnPhongLightingModel(vToLight, vPosition, vNormal, Material.SpecularScalar) * Material.SpecularColor;
-#elif LIGHTING_MODEL_LAMBERT
-    // float4 baseColor = hasTexture ? albedo : float4(1, 1, 1, 1);
-    float3 safeDiffuse = (length(Material.DiffuseColor) < 0.001f)  ? float3(1,1,1)  : Material.DiffuseColor;
-    lit = ambientLight + gLights[nIndex].m_cDiffuse.rgb * LambertLightingModel(vToLight, vNormal) * safeDiffuse;
-#elif LIGHTING_MODEL_SPECULAR
-    lit = ambientLight + gLights[nIndex].m_cSpecular.rgb * BlinnPhongLightingModel(vToLight, vPosition, vNormal, Material.SpecularScalar) * Material.SpecularColor;
-#endif
-    
     float normalizedRadius = fDistance / gLights[nIndex].m_fAttRadius;
     float distanceAttenuation = 1.0f / (1.0f + gLights[nIndex].m_fAttenuation * fDistance * fDistance);
     float radiusAttenuation = 1 - normalizedRadius * normalizedRadius;
     float fSpotAttenuation = saturate((fCos - fCosOuter) / (fCosInner - fCosOuter));
     float fAttenuationFactor = fSpotAttenuation * radiusAttenuation * distanceAttenuation;
-    return float4(lit * fAttenuationFactor * gLights[nIndex].m_fIntensity, 1.0f);
+
+    float3 safeDiffuse = (length(Material.DiffuseColor) < 0.001f) ? float3(1, 1, 1) : Material.DiffuseColor;
+
+#if LIGHTING_MODEL_GOURAUD || LIGHTING_MODEL_BLINNPHONG
+        result.Diffuse = gLights[nIndex].m_cDiffuse * LambertLightingModel(vToLight, vNormal) * safeDiffuse;
+        result.Specular = gLights[nIndex].m_cSpecular * BlinnPhongLightingModel(vToLight, vPosition, vNormal, Material.SpecularScalar) * Material.SpecularColor;
+#elif LIGHTING_MODEL_LAMBERT
+        result.Diffuse = gLights[nIndex].m_cDiffuse * LambertLightingModel(vToLight, vNormal) * safeDiffuse;
+#elif LIGHTING_MODEL_SPECULAR
+        result.Specular = gLights[nIndex].m_cSpecular * BlinnPhongLightingModel(vToLight, vPosition, vNormal, Material.SpecularScalar) * Material.SpecularColor;
+#endif
+
+    result.Diffuse *= fAttenuationFactor * gLights[nIndex].m_fIntensity;
+    result.Specular *= fAttenuationFactor * gLights[nIndex].m_fIntensity;
+
+    return result;
 }
 
-float4 Lighting(float3 vPosition, float3 vNormal)
+LightingResult Lighting(float3 vPosition, float3 vNormal)
 {
-    float4 cColor = float4(0.0f, 0.0f, 0.0f, 0.0f);
+    LightingResult result = (LightingResult) 0;
+
     [unroll(MAX_LIGHTS)]
     for (int i = 0; i < gnLights; i++)
     {
-        if (gLights[i].m_bEnable)
-        {
-            if (gLights[i].m_nType == DIR_LIGHT)
-            {
-                cColor += CalculateDirLight(i, vPosition, vNormal);
-            }
-            else if (gLights[i].m_nType == POINT_LIGHT)
-            {
-                cColor += CalculatePointLight(i, vPosition, vNormal);
-            }
-            else if (gLights[i].m_nType == SPOT_LIGHT)
-            {
-                cColor += CalculateSpotLight(i, vPosition, vNormal);
-            }
-        }
+        if (!gLights[i].m_bEnable)
+            continue;
+
+        LightingResult tmp;
+        if (gLights[i].m_nType == DIR_LIGHT)
+            tmp = CalculateDirLight(i, vPosition, vNormal);
+        else if (gLights[i].m_nType == POINT_LIGHT)
+            tmp = CalculatePointLight(i, vPosition, vNormal);
+        else if (gLights[i].m_nType == SPOT_LIGHT)
+            tmp = CalculateSpotLight(i, vPosition, vNormal);
+
+        result.Diffuse += tmp.Diffuse;
+        result.Specular += tmp.Specular;
     }
-    
-    // 전역 환경광 추가
-    cColor += gcGlobalAmbientLight;
-    cColor.a = 1;
-    
-    return cColor;
+
+    // 환경광 추가
+    result.Diffuse += gcGlobalAmbientLight.rgb * Material.AmbientColor;
+    return result;
 }
+

@@ -1,4 +1,5 @@
 #include "DXDShaderManager.h"
+#include "DXDBufferManager.h"
 
 
 FDXDShaderManager::FDXDShaderManager(ID3D11Device* Device)
@@ -30,6 +31,29 @@ void FDXDShaderManager::ReleaseAllShader()
     }
     PixelShaders.Empty();
 
+}
+
+void FDXDShaderManager::ReleaseAllStaticMeshShader()
+{
+    for (auto& [Key, Shader] : VertexShaders)
+    {
+        if (Key.find(L"StaticMesh") && Shader)
+        {
+            Shader->Release();
+            Shader = nullptr;
+        }
+    }
+    VertexShaders.Empty();
+
+    for (auto& [Key, Shader] : PixelShaders)
+    {
+        if (Key.find(L"StaticMesh") && Shader)
+        {
+            Shader->Release();
+            Shader = nullptr;
+        }
+    }
+    PixelShaders.Empty();
 }
 
 HRESULT FDXDShaderManager::AddPixelShader(const std::wstring& Key, const std::wstring& FileName, const std::string& EntryPoint, const D3D_SHADER_MACRO* Macros)
