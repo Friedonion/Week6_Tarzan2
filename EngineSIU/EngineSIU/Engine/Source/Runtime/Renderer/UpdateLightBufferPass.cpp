@@ -100,7 +100,45 @@ void FUpdateLightBufferPass::Render(const std::shared_ptr<FEditorViewportClient>
         {   
             VisiblePointLights.Add(Light);
         }
+    }
+    
+    SortLightsByDistanceAndIntensity(VisiblePointLights, Viewport->ViewTransformPerspective.GetLocation());
+    
+    for (auto Light : VisiblePointLights)
+    {
+        if (LightCount == MAX_LIGHTS - DirectionalLights.Len())
+        {
+            break;
+        }
 
+        LightBufferData.gLights[LightCount] = Light->GetLightInfo();
+        LightCount++;
+    }
+
+    for (int i = 0; i < DirectionalLights.Num(); i++)
+    {
+        LightBufferData.gLights[LightCount++] = DirectionalLights[i]->GetLightInfo();
+    }
+
+    LightBufferData.nLights = LightCount;
+    BufferManager->UpdateConstantBuffer(TEXT("FLightBuffer"), LightBufferData);
+
+
+    // draw wireframe of selected light component
+    UEditorEngine* Engine = Cast<UEditorEngine>(GEngine);
+    AActor* Actor = nullptr;
+    ULightComponent* Light = nullptr;
+    if (Engine && (Actor = Engine->GetSelectedActor()))
+    {
+        for (auto comp: Actor->GetComponents())
+        {
+            if (Light = Cast<ULightComponent>(comp))
+                break;
+        }
+    }
+    
+    if (Light)
+    {
         if (UPointLightComponent* PointLight = Cast<UPointLightComponent>(Light))
         {
             GEngineLoop.PrimitiveDrawBatch.AddSphereToBatch(
@@ -132,27 +170,6 @@ void FUpdateLightBufferPass::Render(const std::shared_ptr<FEditorViewportClient>
                 );
         }
     }
-
-    SortLightsByDistanceAndIntensity(VisiblePointLights, Viewport->ViewTransformPerspective.GetLocation());
-
-    for (auto Light : VisiblePointLights)
-    {
-        if (LightCount == MAX_LIGHTS - DirectionalLights.Len())
-        {
-            break;
-        }
-
-        LightBufferData.gLights[LightCount] = Light->GetLightInfo();
-        LightCount++;
-    }
-
-    for (int i = 0; i < DirectionalLights.Num(); i++)
-    {
-        LightBufferData.gLights[LightCount++] = DirectionalLights[i]->GetLightInfo();
-    }
-
-    LightBufferData.nLights = LightCount;
-    BufferManager->UpdateConstantBuffer(TEXT("FLightBuffer"), LightBufferData);
 }
 
 void FUpdateLightBufferPass::ClearRenderArr()
