@@ -93,8 +93,14 @@ void FUpdateLightBufferPass::Render(const std::shared_ptr<FEditorViewportClient>
 
         if (UPointLightComponent* PointLight = Cast<UPointLightComponent>(Light))
         {
-
-        } else if (USpotLightComponent* SpotLight = Cast<USpotLightComponent>(Light))
+            GEngineLoop.PrimitiveDrawBatch.AddSphereToBatch(
+                PointLight->GetWorldLocation(),
+                PointLight->GetAttenuationRadius(),
+                48,
+                FVector4(1.f, 1.f, 1.f, 1.f)
+                );
+        }
+        else if (USpotLightComponent* SpotLight = Cast<USpotLightComponent>(Light))
         {
             float InnerConeRadius = SpotLight->GetAttenuationRadius() * sin(SpotLight->GetInnerAngle() * PI / 180.f );
             GEngineLoop.PrimitiveDrawBatch.AddConeToBatch(

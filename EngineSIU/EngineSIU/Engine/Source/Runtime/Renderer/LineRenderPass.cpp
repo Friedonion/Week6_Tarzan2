@@ -82,7 +82,8 @@ void FLineRenderPass::DrawLineBatch(const FLinePrimitiveBatchArgs& BatchArgs) co
     UINT instanceCount = BatchArgs.GridParam.NumGridLines + 3 +
         (BatchArgs.BoundingBoxCount * 12) +
         (BatchArgs.ConeCount * (2 * BatchArgs.ConeSegmentCount)) +
-        (12 * BatchArgs.OBBCount);
+        (12 * BatchArgs.OBBCount) +
+            (BatchArgs.SphereCount * (3 * BatchArgs.SphereSegmentCount));
 
     Graphics->DeviceContext->DrawInstanced(vertexCountPerInstance, instanceCount, 0, 0);
     Graphics->DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);

@@ -279,8 +279,8 @@ struct FPrimitiveCounts
 {
     int BoundingBoxCount;
     int ConeCount;
+    int OBBCount;
     int SphereCount;
-    int pad1;
 };
 
 #define MAX_LIGHTS 16
@@ -377,6 +377,8 @@ struct FLinePrimitiveBatchArgs
     int ConeCount;
     int ConeSegmentCount;
     int OBBCount;
+    int SphereCount;
+    int SphereSegmentCount;
 };
 
 struct FVertexInfo
