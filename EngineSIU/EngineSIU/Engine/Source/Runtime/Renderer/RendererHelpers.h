@@ -29,17 +29,23 @@ namespace MaterialUtils {
         if (MaterialInfo.bHasTexture) {
             std::shared_ptr<FTexture> texture = FEngineLoop::ResourceManager.GetTexture(MaterialInfo.DiffuseTexturePath);
             std::shared_ptr<FTexture> TextureNormal = FEngineLoop::ResourceManager.GetTexture(MaterialInfo.BumpTexturePath);
+            std::shared_ptr<FTexture> TextureMetallic = FEngineLoop::ResourceManager.GetTexture(MaterialInfo.MetallicTexturePath);
+            std::shared_ptr<FTexture> TextureSpecular = FEngineLoop::ResourceManager.GetTexture(MaterialInfo.SpecularTexturePath);
+            std::shared_ptr<FTexture> TextureEmissive = FEngineLoop::ResourceManager.GetTexture(MaterialInfo.EmissiveTexturePath);
 
-            ID3D11ShaderResourceView* srvs[2] = { nullptr, nullptr };
+            ID3D11ShaderResourceView* srvs[5] = { nullptr, nullptr,nullptr,nullptr,nullptr };
            
 
             // Shader Resource View 바인딩 (텍스처와 노말 맵)
             Graphics->DeviceContext->PSSetShaderResources(0, 1, &texture->TextureSRV);
             if (TextureNormal)
                 Graphics->DeviceContext->PSSetShaderResources(1, 1, &TextureNormal->TextureSRV);
-          
-
-            // 샘플러 하나만 바인딩 (디퓨즈 기준)
+            if (TextureMetallic)
+                Graphics->DeviceContext->PSSetShaderResources(2, 1, &TextureMetallic->TextureSRV);
+            if (TextureSpecular)
+                Graphics->DeviceContext->PSSetShaderResources(3, 1, &TextureSpecular->TextureSRV);
+            if (TextureEmissive)
+                Graphics->DeviceContext->PSSetShaderResources(4, 1, &TextureEmissive->TextureSRV);
             if (texture)
                 Graphics->DeviceContext->PSSetSamplers(0, 1, &texture->SamplerState);
         }
