@@ -101,10 +101,10 @@ PS_OUTPUT mainPS(PS_INPUT input)
     bool HasDiffuseTexture = (Material.TextureInfo & 0x1) != 0;
     bool HasSpecularTexture = (Material.TextureInfo & 0x4) != 0;  
     bool HasBumpTexture = (Material.TextureInfo & 0x8) != 0;
+
     bool HasMetallicTexture = (Material.TextureInfo & 0x10) != 0;
     bool HasEmissiveTexture = (Material.TextureInfo & 0x20) != 0;
-    
-    
+
     float3 baseColor = HasDiffuseTexture ? albedo : Material.DiffuseColor;
     float3 normalWS = input.TBN[2];
     
@@ -179,5 +179,6 @@ PS_OUTPUT mainPS(PS_INPUT input)
 
     return output;
 }
+
 
 
