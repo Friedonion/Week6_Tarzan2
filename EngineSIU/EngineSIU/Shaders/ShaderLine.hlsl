@@ -22,8 +22,8 @@ cbuffer CameraConstants : register(b2)
 cbuffer PrimitiveCounts : register(b3)
 {
     int BoundingBoxCount; // 렌더링할 AABB의 개수
-    int pad;
     int ConeCount; // 렌더링할 cone의 개수
+    int SphereCount;    // 렌더링할 sphere 갯수
     int pad1;
 };
 
@@ -45,6 +45,14 @@ struct FConeData
     
     int ConeSegmentCount; // 원뿔 밑면 분할 수
     float pad[3];
+};
+struct FSphereData
+{
+    float3 Center;
+    float Radius;
+    float4 Color;
+    int SegmentCount;
+    int pad[3];
 };
 struct FOrientedBoxCornerData
 {

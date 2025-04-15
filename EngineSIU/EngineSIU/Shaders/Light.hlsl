@@ -12,14 +12,14 @@ struct LIGHT
     float pad2;
 
     float3 m_cSpecular; // Specular Color
-    float pad3;
-
-    float3 m_vPosition; // position of light (used in point, spot)
     float m_fInnerDegree; // spotlight inner radius in degree
 
-    float3 m_vDirection;    // direction (used in directional, spot)
+    float3 m_vPosition; // position of light (used in point, spot)
     float m_fOuterDegree; // spotlight outer radius in degree
-
+    
+    float3 m_vDirection;    // direction (used in directional, spot)
+    float pad3;
+    
     float m_fAttenuation; // 거리 기반 감쇠 계수
     int m_bEnable;
     int m_nType;
@@ -144,9 +144,9 @@ LightingResult CalculateSpotLight(int nIndex, float3 vPosition, float3 vNormal)
 
     float3 lightDir = normalize(gLights[nIndex].m_vDirection);
     float fCos = dot(vToLight, -lightDir);
-    float fCosInner = cos(radians(gLights[nIndex].m_fInnerDegree * 0.5f));
-    float fCosOuter = cos(radians(gLights[nIndex].m_fOuterDegree * 0.5f));
-    float fSpotAttenuation = 1.0f - saturate((fCos - fCosOuter) / (fCosInner - fCosOuter));
+    float fCosInner = cos(radians(gLights[nIndex].m_fInnerDegree));
+    float fCosOuter = cos(radians(gLights[nIndex].m_fOuterDegree));
+    float fSpotAttenuation = saturate((fCos - fCosOuter) / (fCosInner - fCosOuter));
 
     float normalizedRadius = fDistance / gLights[nIndex].m_fAttRadius;
     float distanceAttenuation = 1.0f / (1.0f + gLights[nIndex].m_fAttenuation * fDistance * fDistance);

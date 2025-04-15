@@ -16,6 +16,7 @@
 #include "Components/StaticMeshComponent.h"
 
 #include "BaseGizmos/GizmoBaseComponent.h"
+#include "Components/Light/LightComponent.h"
 #include "Engine/EditorEngine.h"
 
 #include "PropertyEditor/ShowFlags.h"

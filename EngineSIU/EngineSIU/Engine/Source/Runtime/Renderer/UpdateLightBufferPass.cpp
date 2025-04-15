@@ -13,6 +13,9 @@
 #include "Editor/UnrealEd/EditorViewportClient.h"
 #include <FFrustrum.h>
 
+#include "Components/Light/PointLightComponent.h"
+#include "Components/Light/SpotLightComponent.h"
+
 //------------------------------------------------------------------------------
 // 생성자/소멸자
 //------------------------------------------------------------------------------
@@ -88,6 +91,30 @@ void FUpdateLightBufferPass::Render(const std::shared_ptr<FEditorViewportClient>
             VisiblePointLights.Add(Light);
         }
 
+        if (UPointLightComponent* PointLight = Cast<UPointLightComponent>(Light))
+        {
+
+        } else if (USpotLightComponent* SpotLight = Cast<USpotLightComponent>(Light))
+        {
+            float InnerConeRadius = SpotLight->GetAttenuationRadius() * sin(SpotLight->GetInnerAngle() * PI / 180.f );
+            GEngineLoop.PrimitiveDrawBatch.AddConeToBatch(
+                SpotLight->GetWorldLocation(),
+                InnerConeRadius,
+                SpotLight->GetAttenuationRadius() * cos(SpotLight->GetInnerAngle() * PI / 180.f),
+                48,
+                FVector4(1.f, 1.f, 1.f, 1.f),
+                SpotLight->GetRotationMatrix()
+                );
+            float OuterConeRadius = SpotLight->GetAttenuationRadius() * sin(SpotLight->GetOuterAngle() * PI / 180.f );
+            GEngineLoop.PrimitiveDrawBatch.AddConeToBatch(
+                SpotLight->GetWorldLocation(),
+                OuterConeRadius,
+                SpotLight->GetAttenuationRadius() * cos(SpotLight->GetOuterAngle() * PI / 180.f),
+                48,
+                FVector4(1.f, 1.f, 1.f, 1.f),
+                SpotLight->GetRotationMatrix()
+                );
+        }
     }
 
     SortLightsByDistance(VisiblePointLights, Viewport->ViewTransformPerspective.GetLocation());
