@@ -146,14 +146,15 @@ LightingResult CalculateSpotLight(int nIndex, float3 vPosition, float3 vNormal)
     float fCos = dot(-vToLight, lightDir);
     float fCosInner = cos(radians(gLights[nIndex].m_fInnerDegree));
     float fCosOuter = cos(radians(gLights[nIndex].m_fOuterDegree));
-    float fSpotAttenuation = smoothstep(fCosOuter, fCosInner, fCos);
+    
+    float rawSpotAtt = saturate((fCos - fCosOuter) / (fCosInner - fCosOuter));
+    float fSpotAttenuation = pow(rawSpotAtt, gLights[nIndex].m_fAttenuation);
 
 
     float normalizedRadius = fDistance / gLights[nIndex].m_fAttRadius;
-    float distanceAttenuation = exp(-gLights[nIndex].m_fAttenuation * fDistance * fDistance);
+    float distanceAttenuation = saturate(1 - normalizedRadius * normalizedRadius);
     //float radiusAttenuation = 1.0f - normalizedRadius * normalizedRadius;
     float fAttenuationFactor = fSpotAttenuation * distanceAttenuation;
-
     float3 safeDiffuse = (length(Material.DiffuseColor) < 0.001f) ? float3(1, 1, 1) : Material.DiffuseColor;
 
 #if LIGHTING_MODEL_GOURAUD || LIGHTING_MODEL_BLINNPHONG
