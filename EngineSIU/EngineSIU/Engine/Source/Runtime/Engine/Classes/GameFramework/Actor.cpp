@@ -1,6 +1,6 @@
 #include "Actor.h"
 #include "World/World.h"
-
+#include "Runtime/Engine/Classes/Components/ParticleSubUVComponent.h"
 
 UObject* AActor::Duplicate(UObject* InOuter)
 {

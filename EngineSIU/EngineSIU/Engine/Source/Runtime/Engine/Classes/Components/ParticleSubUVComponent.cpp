@@ -152,9 +152,3 @@ void UParticleSubUVComponent::SetRowColumnCount(int cellsPerRow, int cellsPerCol
     CellsPerColumn = cellsPerColumn;
 }
 
-void UParticleSubUVComponent::SetTexture(const FWString& _fileName)
-{
-    Texture = FEngineLoop::ResourceManager.GetTexture(_fileName);
-    std::string str(_fileName.begin(), _fileName.end());
-
-}
