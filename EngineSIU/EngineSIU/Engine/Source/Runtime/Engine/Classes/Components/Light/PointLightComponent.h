@@ -9,6 +9,9 @@ public:
     UPointLightComponent();
     virtual ~UPointLightComponent() override;
 
+    virtual void GetProperties(TMap<FString, FString>& OutProperties) const override;
+    virtual void SetProperties(const TMap<FString, FString>& InProperties) override;
+
 private:
     float AttenuationRadius;
     float LightFalloffExponent;
