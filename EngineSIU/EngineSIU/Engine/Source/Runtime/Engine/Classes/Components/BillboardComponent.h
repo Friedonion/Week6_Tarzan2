@@ -28,9 +28,11 @@ public:
     virtual void SetTexture(const FWString& _fileName);
     void SetUUIDParent(USceneComponent* _parent);
     FMatrix CreateBillboardMatrix() const;
+
     FString GetBufferKey();
  
     FLinearColor Color;
+
     FString GetTexturePath() const { return TexturePath; }
 
     float finalIndexU = 0.0f;
