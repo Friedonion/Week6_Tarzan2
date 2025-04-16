@@ -45,16 +45,12 @@ void SortLightsByDistanceAndIntensity(TArray<ULightComponent*>& Lights, const FV
         float DistA = FVector::DistSquared(A->GetWorldLocation(), CameraPosition);
         float DistB = FVector::DistSquared(B->GetWorldLocation(), CameraPosition);
 
-        // 빛의 강도 (Color의 밝기로 계산)
-        float IntensityA =  A->GetIntensity();
-        float IntensityB =  B->GetIntensity();
-
         // 거리에 따른 감쇠 적용 (거리의 제곱에 반비례)
-        float ScoreA = IntensityA / (DistA * DistA);
-        float ScoreB = IntensityB / (DistB * DistB);
+        float ScoreA = DistA;
+        float ScoreB = DistB;
 
         // 점수가 높은 라이트가 앞으로 오도록 정렬 (내림차순)
-        return ScoreA > ScoreB;
+        return ScoreA < ScoreB;
         };
 
     // 정렬 수행
@@ -141,22 +137,26 @@ void FUpdateLightBufferPass::Render(const std::shared_ptr<FEditorViewportClient>
     {
         if (UPointLightComponent* PointLight = Cast<UPointLightComponent>(Light))
         {
+            FLinearColor lColor = PointLight->GetDiffuseColor();
+            FVector4 color = FVector4(lColor.R, lColor.G, lColor.B, lColor.A);
             GEngineLoop.PrimitiveDrawBatch.AddSphereToBatch(
                 PointLight->GetWorldLocation(),
                 PointLight->GetAttenuationRadius(),
                 48,
-                FVector4(1.f, 1.f, 1.f, 1.f)
+                color
                 );
         }
         else if (USpotLightComponent* SpotLight = Cast<USpotLightComponent>(Light))
         {
+            FLinearColor lColor = SpotLight->GetDiffuseColor();
+            FVector4 color = FVector4(lColor.R, lColor.G, lColor.B, lColor.A);
             float InnerConeRadius = SpotLight->GetAttenuationRadius() * sin(SpotLight->GetInnerAngle() * PI / 180.f );
             GEngineLoop.PrimitiveDrawBatch.AddConeToBatch(
                 SpotLight->GetWorldLocation(),
                 InnerConeRadius,
                 SpotLight->GetAttenuationRadius() * cos(SpotLight->GetInnerAngle() * PI / 180.f),
-                48,
-                FVector4(1.f, 1.f, 1.f, 1.f),
+                18,
+                color,
                 SpotLight->GetRotationMatrix()
                 );
             float OuterConeRadius = SpotLight->GetAttenuationRadius() * sin(SpotLight->GetOuterAngle() * PI / 180.f );
@@ -164,8 +164,8 @@ void FUpdateLightBufferPass::Render(const std::shared_ptr<FEditorViewportClient>
                 SpotLight->GetWorldLocation(),
                 OuterConeRadius,
                 SpotLight->GetAttenuationRadius() * cos(SpotLight->GetOuterAngle() * PI / 180.f),
-                48,
-                FVector4(1.f, 1.f, 1.f, 1.f),
+                18,
+                color,
                 SpotLight->GetRotationMatrix()
                 );
         }

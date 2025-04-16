@@ -4,6 +4,11 @@
 #include <wrl.h>
 #include "PrimitiveComponent.h"
 
+enum class EBillboardComponentType : uint8
+{
+    Default,
+    Light,
+};
 
 class UBillboardComponent : public UPrimitiveComponent
 {
@@ -30,6 +35,8 @@ public:
     FMatrix CreateBillboardMatrix() const;
 
     FString GetBufferKey();
+    void SetBillboardType(EBillboardComponentType Type) { BillboardType = Type; }
+    EBillboardComponentType GetBillboardType() const { return BillboardType; }
  
     FLinearColor Color;
 
@@ -46,4 +53,8 @@ protected:
     // NDC 픽킹을 위한 내부 함수 : quadVertices는 월드 공간 정점 배열
     bool CheckPickingOnNDC(const TArray<FVector>& quadVertices, float& hitDistance) const;
 
+private:
+    void CreateQuadTextureVertexBuffer();
+
+    EBillboardComponentType BillboardType = EBillboardComponentType::Default;
 };
