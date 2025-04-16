@@ -4,6 +4,11 @@
 #include <wrl.h>
 #include "PrimitiveComponent.h"
 
+enum class EBillboardComponentType : uint8
+{
+    Default,
+    Light,
+};
 
 class UBillboardComponent : public UPrimitiveComponent
 {
@@ -27,6 +32,8 @@ public:
     void SetUUIDParent(USceneComponent* _parent);
     FMatrix CreateBillboardMatrix() const;
     FString GetBufferKey();
+    void SetBillboardType(EBillboardComponentType Type) { BillboardType = Type; }
+    EBillboardComponentType GetBillboardType() const { return BillboardType; }
  
     FLinearColor Color;
     float finalIndexU = 0.0f;
@@ -42,4 +49,6 @@ protected:
 
 private:
     void CreateQuadTextureVertexBuffer();
+
+    EBillboardComponentType BillboardType = EBillboardComponentType::Default;
 };
