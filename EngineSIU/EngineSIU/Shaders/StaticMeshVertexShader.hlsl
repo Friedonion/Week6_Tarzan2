@@ -81,8 +81,6 @@ PS_INPUT mainVS(VS_INPUT input)
     
     float3 WorldTangent = normalize(mul(input.tangent, (float3x3) MInverseTranspose));
     
-    //WorldTangent = normalize(WorldTangent - dot(WorldNormal, WorldTangent) * WorldNormal);
-    
     float3 WorldBitangent = cross(WorldTangent, WorldNormal);
     
     float3x3 WorldTBN =

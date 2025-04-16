@@ -86,8 +86,8 @@ float3 GetNormalFromMap(PS_INPUT input)
     float3 N = normalize(input.TBN[2]); 
     float3 T = normalize(input.TBN[0]); 
 
-    T = normalize(T - dot(T, N) * N); // T를 N에 수직이 되도록 보정
-    float3 B = cross(N, T); // B는 항상 N, T에 수직
+    T = normalize(T - dot(T, N) * N); 
+    float3 B = cross(N, T); 
 
     float3x3 TBN = float3x3(T, B, N);
 

@@ -546,9 +546,9 @@ void FLoaderOBJ::CalculateTangent(FStaticMeshVertex& PivotVertex, const FStaticM
     if (fabs(denom) < 1e-6f)
     {
         // UV가 너무 비슷해서 Tangent 계산이 불가능함
-        FVector normal = (FVector::CrossProduct(E1, E2)).Normalize();
+        FVector normal = (FVector::CrossProduct(E1, E2)).GetSafeNormal();
         FVector up = (fabs(normal.Z) < 0.999f) ? FVector(0, 0, 1) : FVector(0, 1, 0);
-        FVector tangent = (FVector::CrossProduct(up, normal)).Normalize();
+        FVector tangent = (FVector::CrossProduct(up, normal)).GetSafeNormal();
 
         PivotVertex.TangentX = tangent.X;
         PivotVertex.TangentY = tangent.Y;
@@ -561,7 +561,7 @@ void FLoaderOBJ::CalculateTangent(FStaticMeshVertex& PivotVertex, const FStaticM
     const float Ty = f * (t2 * E1y - t1 * E2y);
     const float Tz = f * (t2 * E1z - t1 * E2z);
 
-    FVector Tangent = FVector(Tx, Ty, Tz).Normalize();
+    FVector Tangent = FVector(Tx, Ty, Tz).GetSafeNormal();
 
     PivotVertex.TangentX = Tangent.X;
     PivotVertex.TangentY = Tangent.Y;
