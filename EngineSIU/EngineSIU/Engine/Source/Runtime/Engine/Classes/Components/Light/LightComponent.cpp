@@ -1,6 +1,8 @@
 #include "LightComponent.h"
 #include "Components/BillboardComponent.h"
 #include "UObject/Casts.h"
+#include "Classes/GameFramework/Actor.h"
+#include "Classes/Components/BillboardComponent.h"
 
 ULightComponent::ULightComponent()
 {
@@ -48,22 +50,22 @@ void ULightComponent::SetIntensity(float Intensity)
     Light.Intensity = Intensity;
 }
 
-FLinearColor ULightComponent::GetDiffuseColor()
+FLinearColor ULightComponent::GetDiffuseColor() const
 {
     return FLinearColor(Light.DiffuseColor.X, Light.DiffuseColor.Y, Light.DiffuseColor.Z, 1);
 }
 
-FLinearColor ULightComponent::GetSpecularColor()
+FLinearColor ULightComponent::GetSpecularColor()const
 {
     return FLinearColor(Light.SpecularColor.X, Light.SpecularColor.Y, Light.SpecularColor.Z, 1);
 }
 
-float ULightComponent::GetAttenuation()
+float ULightComponent::GetAttenuation() const
 {
     return Light.Attenuation;
 }
 
-float ULightComponent::GetAttenuationRadius()
+float ULightComponent::GetAttenuationRadius()const
 {
     return Light.AttRadius;
 }
@@ -88,5 +90,62 @@ int ULightComponent::CheckRayIntersection(FVector& rayOrigin, FVector& rayDirect
 {
     bool res = AABB.Intersect(rayOrigin, rayDirection, pfNearHitDistance);
     return res;
+}
+
+void ULightComponent::GetProperties(TMap<FString, FString>& OutProperties) const
+{
+    Super::GetProperties(OutProperties);
+
+    OutProperties.Add(TEXT("BaseColor"), GetDiffuseColor().ToString());
+    OutProperties.Add(TEXT("SpecularColor"), GetSpecularColor().ToString());
+    OutProperties.Add(TEXT("Intensity"), FString::Printf(TEXT("%f"), GetIntensity()));
+    OutProperties.Add(TEXT("Attenuation"), FString::Printf(TEXT("%f"), GetAttenuation()));
+    OutProperties.Add(TEXT("Radius"), FString::Printf(TEXT("%f"), GetAttenuationRadius()));
+}
+
+void ULightComponent::SetProperties(const TMap<FString, FString>& InProperties)
+{
+    Super::SetProperties(InProperties);
+    const FString* TempStr = nullptr;
+
+    TempStr = InProperties.Find(TEXT("BaseColor"));
+    if (TempStr)
+    {
+        FLinearColor DiffuseColor = GetDiffuseColor().FromString(*TempStr);
+        SetDiffuseColor(DiffuseColor);
+
+        if (UBillboardComponent* Comp = Cast<UBillboardComponent>(GetOwner()->GetRootComponent()))
+        {
+            Comp->SetColor(DiffuseColor);
+        }
+    }
+
+    TempStr = InProperties.Find(TEXT("SpecularColor"));
+    if (TempStr)
+    {
+        FLinearColor DiffuseColor = GetSpecularColor().FromString(*TempStr);
+        SetSpecularColor(DiffuseColor);
+    }
+
+    TempStr = InProperties.Find(TEXT("Intensity"));
+    if (TempStr)
+    {
+        float Intensity = FString::ToFloat(*TempStr);
+        SetIntensity(Intensity);
+    }
+
+    TempStr = InProperties.Find(TEXT("Attenuation"));
+    if (TempStr)
+    {
+        float Attenuation = FString::ToFloat(*TempStr);
+        SetAttenuation(Attenuation);
+    }
+
+    TempStr = InProperties.Find(TEXT("Radius"));
+    if (TempStr)
+    {
+        float Radius = FString::ToFloat(*TempStr);
+        SetAttenuationRadius(Radius);
+    }
 }
 

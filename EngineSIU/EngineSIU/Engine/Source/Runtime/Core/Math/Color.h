@@ -287,4 +287,5 @@ struct FLinearColor
 
     FString ToString() const;
     bool InitFromString(const FString& SourceString);
+    FLinearColor FromString(const FString& InSourceString);
 };

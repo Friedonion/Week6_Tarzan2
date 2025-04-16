@@ -1,4 +1,6 @@
 #include "PointLightComponent.h"
+#include "Classes/GameFramework/Actor.h"
+#include "Classes/Components/BillboardComponent.h"
 
 UPointLightComponent::UPointLightComponent()
 {
@@ -11,8 +13,12 @@ UPointLightComponent::~UPointLightComponent()
 
 void UPointLightComponent::GetProperties(TMap<FString, FString>& OutProperties) const
 {
+    Super::GetProperties(OutProperties);
+
 }
 
 void UPointLightComponent::SetProperties(const TMap<FString, FString>& InProperties)
 {
+    Super::SetProperties(InProperties);
+    
 }

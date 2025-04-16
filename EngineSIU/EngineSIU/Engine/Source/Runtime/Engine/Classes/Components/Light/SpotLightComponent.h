@@ -11,6 +11,9 @@ public:
     FVector GetDirection();
     void SetDirection(const FVector& dir);
 
+    void GetProperties(TMap<FString, FString>& OutProperties) const;
+    void SetProperties(const TMap<FString, FString>& InProperties);
+
 
 
 };

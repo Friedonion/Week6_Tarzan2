@@ -13,6 +13,8 @@ public:
     virtual UObject* Duplicate(UObject* InOuter) override;
 
     virtual int CheckRayIntersection(FVector& rayOrigin, FVector& rayDirection, float& pfNearHitDistance) override;
+    void GetProperties(TMap<FString, FString>& OutProperties) const override;
+    void SetProperties(const TMap<FString, FString>& InProperties) override;
     void InitializeLight();
     
     void SetDiffuseColor(FLinearColor NewColor);
@@ -21,14 +23,14 @@ public:
     void SetAttenuationRadius(float AttenuationRadius);
     void SetIntensity(float Intensity);
 
-    FLinearColor GetDiffuseColor();
-    FLinearColor GetSpecularColor();
-    float GetAttenuation();
-    float GetAttenuationRadius();
+    FLinearColor GetDiffuseColor()const;
+    FLinearColor GetSpecularColor()const;
+    float GetAttenuation() const;
+    float GetAttenuationRadius() const;
     
-    float GetInnerAngle();
+    float GetInnerAngle()const;
     void SetInnerAngle(float angle);
-    float GetOuterAngle();
+    float GetOuterAngle()const;
     void SetOuterAngle(float angle);
     FLight GetLightInfo();
 protected:
@@ -43,7 +45,7 @@ public:
     
 };
 
-inline float ULightComponent::GetInnerAngle()
+inline float ULightComponent::GetInnerAngle() const
 {
     return Light.InnerDegree;
 }
@@ -53,7 +55,7 @@ inline void ULightComponent::SetInnerAngle(float angle)
     Light.InnerDegree = angle;
 }
 
-inline float ULightComponent::GetOuterAngle()
+inline float ULightComponent::GetOuterAngle()const
 {
     return Light.OuterDegree;
 }
@@ -62,3 +64,4 @@ inline void ULightComponent::SetOuterAngle(float angle)
 {
     Light.OuterDegree = angle;
 }
+

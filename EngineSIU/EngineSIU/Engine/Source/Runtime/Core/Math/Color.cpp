@@ -40,3 +40,15 @@ bool FLinearColor::InitFromString(const FString& InSourceString)
     return bSuccessful;
 
 }
+
+ FLinearColor FLinearColor::FromString(const FString& InSourceString)
+{
+    FLinearColor Result = FLinearColor::Black; // 기본값
+
+    FParse::Value(*InSourceString, TEXT("R="), Result.R);
+    FParse::Value(*InSourceString, TEXT("G="), Result.G);
+    FParse::Value(*InSourceString, TEXT("B="), Result.B);
+    FParse::Value(*InSourceString, TEXT("A="), Result.A);
+
+    return Result;
+}
