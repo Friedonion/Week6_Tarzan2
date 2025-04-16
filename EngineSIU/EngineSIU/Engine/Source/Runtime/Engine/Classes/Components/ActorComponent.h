@@ -85,4 +85,6 @@ private:
 public:
     /** Component가 초기화 되었을 때, 자동으로 활성화할지 여부 */
     uint8 bAutoActive : 1 = true;
+
+    uint8 bCanEditorTick : 1 = true;
 };

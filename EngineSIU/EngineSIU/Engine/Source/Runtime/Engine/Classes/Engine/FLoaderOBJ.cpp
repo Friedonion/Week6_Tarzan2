@@ -537,14 +537,22 @@ void FLoaderOBJ::CalculateTangent(FStaticMeshVertex& PivotVertex, const FStaticM
     const float E2y = Vertex2.Y - PivotVertex.Y;
     const float E2z = Vertex2.Z - PivotVertex.Z;
 
+    const FVector E1 = FVector(Vertex1.X - PivotVertex.X, Vertex1.Y - PivotVertex.Y, Vertex1.Z - PivotVertex.Z);
+    const FVector E2 = FVector(Vertex2.X - PivotVertex.X, Vertex2.Y - PivotVertex.Y, Vertex2.Z - PivotVertex.Z);
+
+
     const float denom = (s1 * t2 - s2 * t1);
 
     if (fabs(denom) < 1e-6f)
     {
         // UV가 너무 비슷해서 Tangent 계산이 불가능함
-        PivotVertex.TangentX = 1.0f;
-        PivotVertex.TangentY = 0.0f;
-        PivotVertex.TangentZ = 0.0f;
+        FVector normal = (FVector::CrossProduct(E1, E2)).Normalize();
+        FVector up = (fabs(normal.Z) < 0.999f) ? FVector(0, 0, 1) : FVector(0, 1, 0);
+        FVector tangent = (FVector::CrossProduct(up, normal)).Normalize();
+
+        PivotVertex.TangentX = tangent.X;
+        PivotVertex.TangentY = tangent.Y;
+        PivotVertex.TangentZ = tangent.Z;
         return;
     }
 
