@@ -45,16 +45,12 @@ void SortLightsByDistanceAndIntensity(TArray<ULightComponent*>& Lights, const FV
         float DistA = FVector::DistSquared(A->GetWorldLocation(), CameraPosition);
         float DistB = FVector::DistSquared(B->GetWorldLocation(), CameraPosition);
 
-        // 빛의 강도 (Color의 밝기로 계산)
-        float IntensityA =  A->GetIntensity();
-        float IntensityB =  B->GetIntensity();
-
         // 거리에 따른 감쇠 적용 (거리의 제곱에 반비례)
-        float ScoreA = IntensityA / (DistA * DistA);
-        float ScoreB = IntensityB / (DistB * DistB);
+        float ScoreA = DistA;
+        float ScoreB = DistB;
 
         // 점수가 높은 라이트가 앞으로 오도록 정렬 (내림차순)
-        return ScoreA > ScoreB;
+        return ScoreA < ScoreB;
         };
 
     // 정렬 수행
