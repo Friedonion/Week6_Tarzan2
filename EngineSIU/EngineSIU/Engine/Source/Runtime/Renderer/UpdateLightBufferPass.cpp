@@ -141,22 +141,26 @@ void FUpdateLightBufferPass::Render(const std::shared_ptr<FEditorViewportClient>
     {
         if (UPointLightComponent* PointLight = Cast<UPointLightComponent>(Light))
         {
+            FLinearColor lColor = PointLight->GetDiffuseColor();
+            FVector4 color = FVector4(lColor.R, lColor.G, lColor.B, lColor.A);
             GEngineLoop.PrimitiveDrawBatch.AddSphereToBatch(
                 PointLight->GetWorldLocation(),
                 PointLight->GetAttenuationRadius(),
                 48,
-                FVector4(1.f, 1.f, 1.f, 1.f)
+                color
                 );
         }
         else if (USpotLightComponent* SpotLight = Cast<USpotLightComponent>(Light))
         {
+            FLinearColor lColor = SpotLight->GetDiffuseColor();
+            FVector4 color = FVector4(lColor.R, lColor.G, lColor.B, lColor.A);
             float InnerConeRadius = SpotLight->GetAttenuationRadius() * sin(SpotLight->GetInnerAngle() * PI / 180.f );
             GEngineLoop.PrimitiveDrawBatch.AddConeToBatch(
                 SpotLight->GetWorldLocation(),
                 InnerConeRadius,
                 SpotLight->GetAttenuationRadius() * cos(SpotLight->GetInnerAngle() * PI / 180.f),
-                48,
-                FVector4(1.f, 1.f, 1.f, 1.f),
+                18,
+                color,
                 SpotLight->GetRotationMatrix()
                 );
             float OuterConeRadius = SpotLight->GetAttenuationRadius() * sin(SpotLight->GetOuterAngle() * PI / 180.f );
@@ -164,8 +168,8 @@ void FUpdateLightBufferPass::Render(const std::shared_ptr<FEditorViewportClient>
                 SpotLight->GetWorldLocation(),
                 OuterConeRadius,
                 SpotLight->GetAttenuationRadius() * cos(SpotLight->GetOuterAngle() * PI / 180.f),
-                48,
-                FVector4(1.f, 1.f, 1.f, 1.f),
+                18,
+                color,
                 SpotLight->GetRotationMatrix()
                 );
         }

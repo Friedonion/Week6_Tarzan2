@@ -143,16 +143,18 @@ LightingResult CalculateSpotLight(int nIndex, float3 vPosition, float3 vNormal)
         return result;
 
     float3 lightDir = normalize(gLights[nIndex].m_vDirection);
-    float fCos = dot(vToLight, -lightDir);
+    float fCos = dot(-vToLight, lightDir);
     float fCosInner = cos(radians(gLights[nIndex].m_fInnerDegree));
     float fCosOuter = cos(radians(gLights[nIndex].m_fOuterDegree));
-    float fSpotAttenuation = saturate((fCos - fCosOuter) / (fCosInner - fCosOuter));
+    
+    float rawSpotAtt = saturate((fCos - fCosOuter) / (fCosInner - fCosOuter));
+    float fSpotAttenuation = pow(rawSpotAtt, gLights[nIndex].m_fAttenuation);
+
 
     float normalizedRadius = fDistance / gLights[nIndex].m_fAttRadius;
-    float distanceAttenuation = 1.0f / (1.0f + gLights[nIndex].m_fAttenuation * fDistance * fDistance);
-    float radiusAttenuation = 1.0f - normalizedRadius * normalizedRadius;
-    float fAttenuationFactor = fSpotAttenuation * radiusAttenuation * distanceAttenuation;
-
+    float distanceAttenuation = saturate(1 - normalizedRadius * normalizedRadius);
+    //float radiusAttenuation = 1.0f - normalizedRadius * normalizedRadius;
+    float fAttenuationFactor = fSpotAttenuation * distanceAttenuation;
     float3 safeDiffuse = (length(Material.DiffuseColor) < 0.001f) ? float3(1, 1, 1) : Material.DiffuseColor;
 
 #if LIGHTING_MODEL_GOURAUD || LIGHTING_MODEL_BLINNPHONG

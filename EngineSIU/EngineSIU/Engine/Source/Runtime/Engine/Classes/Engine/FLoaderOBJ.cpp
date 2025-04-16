@@ -541,7 +541,7 @@ void FLoaderOBJ::CalculateTangent(FStaticMeshVertex& PivotVertex, const FStaticM
 
     if (fabs(denom) < 1e-6f)
     {
-        // UV가 너무 비슷해서 Tangent 계산이 불가능함 → 기본 방향 사용 or 스킵
+        // UV가 너무 비슷해서 Tangent 계산이 불가능함
         PivotVertex.TangentX = 1.0f;
         PivotVertex.TangentY = 0.0f;
         PivotVertex.TangentZ = 0.0f;
