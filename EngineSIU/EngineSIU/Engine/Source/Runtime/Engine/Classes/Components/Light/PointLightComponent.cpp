@@ -8,3 +8,11 @@ UPointLightComponent::UPointLightComponent()
 UPointLightComponent::~UPointLightComponent()
 {
 }
+
+void UPointLightComponent::GetProperties(TMap<FString, FString>& OutProperties) const
+{
+}
+
+void UPointLightComponent::SetProperties(const TMap<FString, FString>& InProperties)
+{
+}
