@@ -82,12 +82,21 @@ float3 GetNormalFromMap(PS_INPUT input)
 {
     // 노말 맵에서 RGB 가져오기 (값 범위: [0, 1])
     float3 normalMap = NormalTextures.Sample(Sampler, input.texcoord).rgb;
+    
+    float3 N = normalize(input.TBN[2]); 
+    float3 T = normalize(input.TBN[0]); 
+
+    T = normalize(T - dot(T, N) * N); // T를 N에 수직이 되도록 보정
+    float3 B = cross(N, T); // B는 항상 N, T에 수직
+
+    float3x3 TBN = float3x3(T, B, N);
+
 
     // [-1, 1] 범위로 변환
     normalMap = normalMap * 2.0f - 1.0f;
 
     // 노말 맵의 노말을 월드 공간으로 변환
-    return normalize(mul(normalMap, input.TBN));
+    return normalize(mul(normalMap, TBN));
 }
 
 
@@ -141,7 +150,6 @@ PS_OUTPUT mainPS(PS_INPUT input)
 
 #else 
     LightingResult lighting = Lighting(input.worldPos, normalWS);
-
     float specularFactor = Material.SpecularScalar;
     if (HasSpecularTexture)
     {
@@ -155,7 +163,7 @@ PS_OUTPUT mainPS(PS_INPUT input)
     float metallic = 0.0f;
     if (HasMetallicTexture)
     {
-        metallic = MetallicTextures.Sample(Sampler, input.texcoord).r;
+       // metallic = MetallicTextures.Sample(Sampler, input.texcoord).r;
     }
 
     // Emissive 텍스처 적용
