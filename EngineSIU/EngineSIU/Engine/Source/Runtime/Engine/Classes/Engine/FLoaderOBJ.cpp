@@ -315,7 +315,7 @@ bool FLoaderOBJ::ParseMaterial(FObjInfo& OutObjInfo, OBJ::FStaticMeshRenderData&
             OutFStaticMesh.Materials[MaterialIndex].DiffuseTexturePath = TexturePath;
             OutFStaticMesh.Materials[MaterialIndex].bHasTexture = true;
 
-            CreateTextureFromFile(OutFStaticMesh.Materials[MaterialIndex].DiffuseTexturePath);
+            CreateTextureFromFile(OutFStaticMesh.Materials[MaterialIndex].DiffuseTexturePath,true);
             OutFStaticMesh.Materials[MaterialIndex].TextureInfo |= ETextureType::TEXTURE_Diffuse;
         }
         if (Token == "map_Bump")
@@ -340,7 +340,7 @@ bool FLoaderOBJ::ParseMaterial(FObjInfo& OutObjInfo, OBJ::FStaticMeshRenderData&
             FWString TexturePath = OutObjInfo.FilePath + LastToken.ToWideString();
             OutFStaticMesh.Materials[MaterialIndex].BumpTexturePath = TexturePath;
             OutFStaticMesh.Materials[MaterialIndex].bHasTexture = true;
-            CreateTextureFromFile(OutFStaticMesh.Materials[MaterialIndex].BumpTexturePath);
+            CreateTextureFromFile(OutFStaticMesh.Materials[MaterialIndex].BumpTexturePath,false);
             OutFStaticMesh.Materials[MaterialIndex].TextureInfo |= ETextureType::TEXTURE_Bump;
         }
         if (Token == "map_Ns")
@@ -351,7 +351,7 @@ bool FLoaderOBJ::ParseMaterial(FObjInfo& OutObjInfo, OBJ::FStaticMeshRenderData&
             OutFStaticMesh.Materials[MaterialIndex].SpecularTexturePath = TexturePath;
             OutFStaticMesh.Materials[MaterialIndex].bHasTexture = true;
 
-            CreateTextureFromFile(TexturePath);
+            CreateTextureFromFile(TexturePath,false);
             OutFStaticMesh.Materials[MaterialIndex].TextureInfo |= ETextureType::TEXTURE_Specular; // or TEXTURE_Roughness if PBR
         }
 
@@ -363,7 +363,7 @@ bool FLoaderOBJ::ParseMaterial(FObjInfo& OutObjInfo, OBJ::FStaticMeshRenderData&
             OutFStaticMesh.Materials[MaterialIndex].MetallicTexturePath = TexturePath;
             OutFStaticMesh.Materials[MaterialIndex].bHasTexture = true;
 
-            CreateTextureFromFile(TexturePath);
+            CreateTextureFromFile(TexturePath,false);
             OutFStaticMesh.Materials[MaterialIndex].TextureInfo |= ETextureType::TEXTURE_Metallic;
         }
 
@@ -375,7 +375,7 @@ bool FLoaderOBJ::ParseMaterial(FObjInfo& OutObjInfo, OBJ::FStaticMeshRenderData&
             OutFStaticMesh.Materials[MaterialIndex].EmissiveTexturePath = TexturePath;
             OutFStaticMesh.Materials[MaterialIndex].bHasTexture = true;
 
-            CreateTextureFromFile(TexturePath);
+            CreateTextureFromFile(TexturePath,true);
             OutFStaticMesh.Materials[MaterialIndex].TextureInfo |= ETextureType::TEXTURE_Emissive;
         }
 
@@ -486,14 +486,14 @@ bool FLoaderOBJ::ConvertToStaticMesh(const FObjInfo& RawData, OBJ::FStaticMeshRe
 }
 
 
-bool FLoaderOBJ::CreateTextureFromFile(const FWString& Filename)
+bool FLoaderOBJ::CreateTextureFromFile(const FWString& Filename,bool IsSRGB)
 {
     if (FEngineLoop::ResourceManager.GetTexture(Filename))
     {
         return true;
     }
 
-    HRESULT hr = FEngineLoop::ResourceManager.LoadTextureFromFile(FEngineLoop::GraphicDevice.Device, nullptr, Filename.c_str());
+    HRESULT hr = FEngineLoop::ResourceManager.LoadTextureFromFile(FEngineLoop::GraphicDevice.Device, nullptr, Filename.c_str(), IsSRGB);
 
     if (FAILED(hr))
     {
@@ -835,7 +835,7 @@ bool FManagerOBJ::LoadStaticMeshFromBinary(const FWString& FilePath, OBJ::FStati
         {
             if (FEngineLoop::ResourceManager.GetTexture(Texture) == nullptr)
             {
-                FEngineLoop::ResourceManager.LoadTextureFromFile(FEngineLoop::GraphicDevice.Device, nullptr, Texture.c_str());
+                FEngineLoop::ResourceManager.LoadTextureFromFile(FEngineLoop::GraphicDevice.Device, nullptr, Texture.c_str(),true);
             }
         }
     }

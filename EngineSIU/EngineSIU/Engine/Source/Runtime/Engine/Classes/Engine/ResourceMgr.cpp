@@ -24,18 +24,18 @@ void FResourceMgr::Initialize(FRenderer* renderer, FGraphicsDevice* device)
     //FManagerOBJ::LoadObjStaticMeshAsset("Assets//AxisCircleZ.obj");
     // FManagerOBJ::LoadObjStaticMeshAsset("Assets/helloBlender.obj");
 
-    LoadTextureFromFile(device->Device, device->DeviceContext, L"Assets/Texture/ocean_sky.jpg");
-    LoadTextureFromFile(device->Device, device->DeviceContext, L"Assets/Texture/font.png");
+    LoadTextureFromFile(device->Device, device->DeviceContext, L"Assets/Texture/ocean_sky.jpg",true);
+    LoadTextureFromFile(device->Device, device->DeviceContext, L"Assets/Texture/font.png", true);
     LoadTextureFromDDS(device->Device, device->DeviceContext, L"Assets/Texture/font.dds");
-    LoadTextureFromFile(device->Device, device->DeviceContext, L"Assets/Texture/emart.png");
-    LoadTextureFromFile(device->Device, device->DeviceContext, L"Assets/Texture/T_Explosion_SubUV.png");
-    LoadTextureFromFile(device->Device, device->DeviceContext, L"Assets/Texture/UUID_Font.png");
+    LoadTextureFromFile(device->Device, device->DeviceContext, L"Assets/Texture/emart.png", true);
+    LoadTextureFromFile(device->Device, device->DeviceContext, L"Assets/Texture/T_Explosion_SubUV.png", true);
+    LoadTextureFromFile(device->Device, device->DeviceContext, L"Assets/Texture/UUID_Font.png", true);
     LoadTextureFromDDS(device->Device, device->DeviceContext, L"Assets/Texture/UUID_Font.dds");
-    LoadTextureFromFile(device->Device, device->DeviceContext, L"Assets/Texture/Wooden Crate_Crate_BaseColor.png");
-    LoadTextureFromFile(device->Device, device->DeviceContext, L"Assets/Texture/spotLight.png");
-    LoadTextureFromFile(device->Device, device->DeviceContext, L"Assets/Editor/Icon/SpotLight_64x.png");
-    LoadTextureFromFile(device->Device, device->DeviceContext, L"Assets/Editor/Icon/PointLight_64x.png");
-    LoadTextureFromFile(device->Device, device->DeviceContext, L"Assets/Editor/Icon/DirectionalLight_64x.png");
+    LoadTextureFromFile(device->Device, device->DeviceContext, L"Assets/Texture/Wooden Crate_Crate_BaseColor.png", true);
+    LoadTextureFromFile(device->Device, device->DeviceContext, L"Assets/Texture/spotLight.png", true);
+    LoadTextureFromFile(device->Device, device->DeviceContext, L"Assets/Editor/Icon/SpotLight_64x.png", true);
+    LoadTextureFromFile(device->Device, device->DeviceContext, L"Assets/Editor/Icon/PointLight_64x.png", true);
+    LoadTextureFromFile(device->Device, device->DeviceContext, L"Assets/Editor/Icon/DirectionalLight_64x.png", true);
 }
 
 void FResourceMgr::Release(FRenderer* renderer) {
@@ -72,7 +72,7 @@ std::shared_ptr<FTexture> FResourceMgr::GetTexture(const FWString& name) const
     return TempValue ? *TempValue : nullptr;
 }
 
-HRESULT FResourceMgr::LoadTextureFromFile(ID3D11Device* device, ID3D11DeviceContext* context, const wchar_t* filename)
+HRESULT FResourceMgr::LoadTextureFromFile(ID3D11Device* device, ID3D11DeviceContext* context, const wchar_t* filename, bool IsSRGB)
 {
     IWICImagingFactory* wicFactory = nullptr;
     IWICBitmapDecoder* decoder = nullptr;
@@ -120,7 +120,7 @@ HRESULT FResourceMgr::LoadTextureFromFile(ID3D11Device* device, ID3D11DeviceCont
     textureDesc.Height = height;
     textureDesc.MipLevels = 1;
     textureDesc.ArraySize = 1;
-    textureDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+    textureDesc.Format = IsSRGB?DXGI_FORMAT_R8G8B8A8_UNORM_SRGB : DXGI_FORMAT_R8G8B8A8_UNORM;
     textureDesc.SampleDesc.Count = 1;
     textureDesc.Usage = D3D11_USAGE_IMMUTABLE;
     textureDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
