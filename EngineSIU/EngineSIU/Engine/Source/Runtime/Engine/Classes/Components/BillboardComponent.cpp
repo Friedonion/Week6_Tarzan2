@@ -39,6 +39,7 @@ UObject* UBillboardComponent::Duplicate(UObject* InOuter)
         NewComponent->Texture = FEngineLoop::ResourceManager.GetTexture(BufferKey.ToWideString());
         NewComponent->BufferKey = BufferKey;
         NewComponent->m_parent = m_parent;
+        NewComponent->BillboardType = BillboardType;
     }
     return NewComponent;
 }
