@@ -170,6 +170,12 @@ void FBillboardRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& 
     // 각 Billboard에 대해 렌더링 처리
     for (auto BillboardComp : BillboardObjs)
     {
+        if (GEngine->ActiveWorld->WorldType == EWorldType::PIE)
+        {
+            if (BillboardComp->GetBillboardType() == EBillboardComponentType::Light)
+                continue;
+        }
+
         if (!FFrustrum::Get().ContainsPoint(BillboardComp->GetWorldLocation()))
         {
             continue;
